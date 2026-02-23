@@ -107,7 +107,7 @@ min_weight = st.number_input(
     step=0.01
 )
 
-    run_opt = st.button("Optimierung starten")
+run_opt = st.button("Optimierung starten")
 
     if run_opt:
         if run_opt:
