@@ -370,6 +370,29 @@ with tab1:
                 )
                 
                 st.altair_chart(corr_chart, use_container_width=True)
+                # ---------------------------------------------------------
+                # Correlation Heatmap – Schritt 26
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Korrelationen zwischen Assets")
+                
+                # Korrelationen berechnen
+                corr = df.corr()
+                
+                # Für Heatmap in lange Form bringen
+                corr_long = corr.reset_index().melt(id_vars="index")
+                corr_long.columns = ["Asset1", "Asset2", "Correlation"]
+                
+                # Heatmap
+                corr_chart = alt.Chart(corr_long).mark_rect().encode(
+                    x=alt.X("Asset1:O", title="Asset 1"),
+                    y=alt.Y("Asset2:O", title="Asset 2"),
+                    color=alt.Color("Correlation:Q", scale=alt.Scale(scheme="redblue"), title="Korrelation"),
+                    tooltip=["Asset1", "Asset2", "Correlation"]
+                )
+                
+                st.altair_chart(corr_chart, use_container_width=True)
 
                 # -------------------------------------------------
                 # EXECUTIVE SUMMARY
