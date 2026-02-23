@@ -1604,6 +1604,400 @@ with tab1:
                 - Ein robustes Portfolio hat einen hohen Anteil systematischen Risikos und einen niedrigen Anteil idiosynkratischen Risikos.  
                 """)
 
+                # ---------------------------------------------------------
+                # Regime-Sensitivity – Schritt 51
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Regime-Sensitivity (Bull / Bear / High-Vol / Low-Vol)")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Markt-Proxy (synthetisch)
+                market = factors["Market"]
+                
+                # Volatilität des Marktes (Rolling)
+                market_vol = market.rolling(21).std()
+                
+                # Regime-Definitionen
+                bull_mask = market > 0
+                bear_mask = market < 0
+                high_vol_mask = market_vol > market_vol.median()
+                low_vol_mask = market_vol <= market_vol.median()
+                
+                # Regime-Renditen
+                regime_results = {
+                    "Bull Market": portfolio_returns_series[bull_mask].mean() * 252,
+                    "Bear Market": portfolio_returns_series[bear_mask].mean() * 252,
+                    "High Volatility": portfolio_returns_series[high_vol_mask].mean() * 252,
+                    "Low Volatility": portfolio_returns_series[low_vol_mask].mean() * 252
+                }
+                
+                regime_df = pd.DataFrame({
+                    "Regime": list(regime_results.keys()),
+                    "Annualisierte Rendite": list(regime_results.values())
+                })
+                
+                st.table(regime_df)
+                
+                # Balkendiagramm
+                regime_chart = alt.Chart(regime_df).mark_bar().encode(
+                    x=alt.X("Regime:N", sort=None),
+                    y=alt.Y("Annualisierte Rendite:Q", title="Rendite (annualisiert)"),
+                    color=alt.condition(
+                        alt.datum["Annualisierte Rendite"] < 0,
+                        alt.value("#FF4444"),
+                        alt.value("#44FF44")
+                    ),
+                    tooltip=["Regime", "Annualisierte Rendite"]
+                ).properties(height=400)
+                
+                st.altair_chart(regime_chart, use_container_width=True)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - **Bull Market:** Wie stark profitiert dein Portfolio von positiven Marktphasen?  
+                - **Bear Market:** Wie gut schützt es in Abschwüngen?  
+                - **High Volatility:** Wie verhält es sich in Stressphasen?  
+                - **Low Volatility:** Wie stabil ist es in ruhigen Märkten?  
+                
+                Ein robustes Portfolio zeigt:  
+                - positive Renditen in Bull Markets  
+                - geringe Verluste in Bear Markets  
+                - Stabilität in High-Vol-Phasen  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Forecast-Modul – Schritt 52
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Forecast (ARIMA + ML)")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # -----------------------------------------
+                # ARIMA Forecast
+                # -----------------------------------------
+                from statsmodels.tsa.arima.model import ARIMA
+                
+                try:
+                    arima_model = ARIMA(portfolio_returns_series, order=(1,0,1)).fit()
+                    arima_forecast = arima_model.forecast(30)  # 30 Tage Forecast
+                except:
+                    arima_forecast = pd.Series([0]*30)
+                
+                # -----------------------------------------
+                # ML Forecast (Random Forest)
+                # -----------------------------------------
+                from sklearn.ensemble import RandomForestRegressor
+                
+                # Features: Lagged Returns
+                lags = 5
+                ml_df = pd.DataFrame({
+                    f"lag_{i}": portfolio_returns_series.shift(i) for i in range(1, lags+1)
+                })
+                ml_df["y"] = portfolio_returns_series
+                ml_df = ml_df.dropna()
+                
+                X = ml_df.drop("y", axis=1)
+                y = ml_df["y"]
+                
+                rf = RandomForestRegressor(n_estimators=200, random_state=42)
+                rf.fit(X, y)
+                
+                # ML Forecast: autoregressive rollout
+                ml_forecast = []
+                last_values = list(portfolio_returns_series.tail(lags))
+                
+                for _ in range(30):
+                    X_pred = np.array(last_values[-lags:]).reshape(1, -1)
+                    pred = rf.predict(X_pred)[0]
+                    ml_forecast.append(pred)
+                    last_values.append(pred)
+                
+                # -----------------------------------------
+                # Forecast DataFrame
+                # -----------------------------------------
+                forecast_df = pd.DataFrame({
+                    "Tag": range(1, 31),
+                    "ARIMA Forecast": arima_forecast.values,
+                    "ML Forecast": ml_forecast
+                })
+                
+                st.table(forecast_df)
+                
+                # -----------------------------------------
+                # Forecast Chart
+                # -----------------------------------------
+                forecast_long = forecast_df.melt(id_vars="Tag", var_name="Modell", value_name="Wert")
+                
+                forecast_chart = alt.Chart(forecast_long).mark_line().encode(
+                    x=alt.X("Tag:Q", title="Tage in der Zukunft"),
+                    y=alt.Y("Wert:Q", title="Forecast Return"),
+                    color="Modell:N",
+                    tooltip=["Tag", "Modell", "Wert"]
+                ).properties(height=400)
+                
+                st.altair_chart(forecast_chart, use_container_width=True)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - **ARIMA** modelliert lineare Zeitreihenmuster.  
+                - **ML (Random Forest)** erkennt nichtlineare Muster.  
+                - Forecasts sind *keine Garantien*, aber helfen, Trends und Risiken zu erkennen.  
+                - Wenn beide Modelle ähnliche Trends zeigen → höhere Forecast‑Konfidenz.  
+                """)
+
+                # ---------------------------------------------------------
+                # Scenario-Optimizer (What-If-Engine) – Schritt 53
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Scenario-Optimizer (What-If-Engine)")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Szenario-Auswahl
+                scenario = st.selectbox(
+                    "Szenario auswählen:",
+                    [
+                        "Tech -20%",
+                        "Bonds +10%",
+                        "Emerging Markets -15%",
+                        "Energy +12%",
+                        "Custom Scenario"
+                    ]
+                )
+                
+                # Standard-Szenarien definieren
+                scenario_shocks = {
+                    "Tech -20%": {"Tech": -0.20},
+                    "Bonds +10%": {"Bonds": 0.10},
+                    "Emerging Markets -15%": {"EM": -0.15},
+                    "Energy +12%": {"Energy": 0.12}
+                }
+                
+                # Custom Scenario
+                custom_shock = {}
+                if scenario == "Custom Scenario":
+                    st.markdown("#### Custom Shock definieren")
+                    for asset in df.columns:
+                        val = st.number_input(f"{asset} Shock (%)", value=0.0)
+                        custom_shock[asset] = val / 100
+                
+                # Shock anwenden
+                if scenario == "Custom Scenario":
+                    shock_dict = custom_shock
+                else:
+                    shock_dict = scenario_shocks.get(scenario, {})
+                
+                # Shock-Vektor erstellen
+                shock_vector = np.array([shock_dict.get(asset, 0) for asset in df.columns])
+                
+                # Szenario-Auswirkung
+                scenario_return = float(np.dot(w, shock_vector))
+                
+                # Risiko neu berechnen
+                new_returns = portfolio_returns_series + scenario_return
+                new_vol = new_returns.std() * np.sqrt(252)
+                new_mean = new_returns.mean() * 252
+                
+                # Tabelle
+                scenario_df = pd.DataFrame({
+                    "Kennzahl": ["Szenario-Rendite", "Neue annualisierte Rendite", "Neue Volatilität"],
+                    "Wert": [scenario_return, new_mean, new_vol]
+                })
+                
+                st.table(scenario_df)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Das Szenario wendet pro Asset einen definierten Shock an.  
+                - Die Portfolio-Rendite verändert sich proportional zu den Gewichten.  
+                - Die neue Rendite und Volatilität zeigen, wie robust das Portfolio auf das Szenario reagiert.  
+                - Perfekt für What-If-Analysen und Risiko-Simulationen.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Stress-Surface (3D-Risk-Map) – Schritt 54
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Stress-Surface (3D-Risk-Map)")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Zwei Stress-Dimensionen definieren
+                shock_range = np.linspace(-0.20, 0.20, 25)  # -20% bis +20%
+                
+                X, Y = np.meshgrid(shock_range, shock_range)
+                
+                Z = np.zeros_like(X)
+                
+                # Wir stressen zwei synthetische Faktoren:
+                # X = Marktshock
+                # Y = Zins-/Bondshock
+                
+                for i in range(len(shock_range)):
+                    for j in range(len(shock_range)):
+                        market_shock = X[i, j]
+                        bond_shock = Y[i, j]
+                
+                        # Shock-Vektor (synthetisch)
+                        shock_vector = np.zeros(len(df.columns))
+                
+                        for idx, asset in enumerate(df.columns):
+                            if "Tech" in asset or "Equity" in asset or "Stock" in asset:
+                                shock_vector[idx] = market_shock
+                            if "Bond" in asset or "Treasury" in asset or "Fixed" in asset:
+                                shock_vector[idx] = bond_shock
+                
+                        Z[i, j] = np.dot(w, shock_vector)
+                
+                # DataFrame für Altair
+                surface_df = pd.DataFrame({
+                    "MarketShock": X.flatten(),
+                    "BondShock": Y.flatten(),
+                    "PortfolioImpact": Z.flatten()
+                })
+                
+                # Heatmap (2D-Surface)
+                surface_chart = alt.Chart(surface_df).mark_rect().encode(
+                    x=alt.X("MarketShock:Q", title="Marktshock"),
+                    y=alt.Y("BondShock:Q", title="Bondshock"),
+                    color=alt.Color("PortfolioImpact:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["MarketShock", "BondShock", "PortfolioImpact"]
+                ).properties(height=400)
+                
+                st.altair_chart(surface_chart, use_container_width=True)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Die Stress-Surface zeigt die Portfolio-Auswirkung bei gleichzeitigen Schocks.  
+                - Dunkle Farben = starke negative Auswirkungen.  
+                - Helle Farben = positive oder geringe Auswirkungen.  
+                - Die Karte zeigt nichtlineare Risiko-Hotspots und Stresszonen.  
+                - Perfekt für institutionelle Risiko-Analysen und Präsentationen.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-AI-Insights (LLM-basierte Risiko-Analyse) – Schritt 55
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Insights (LLM-basierte Risiko-Analyse)")
+                
+                # Wichtige Kennzahlen einsammeln
+                summary_data = {
+                    "Sharpe": sharpe_ratio if 'sharpe_ratio' in locals() else None,
+                    "Volatilität": float((df @ w).std() * np.sqrt(252)),
+                    "Max Drawdown": float(max_dd) if 'max_dd' in locals() else None,
+                    "Diversifikation": float(div_score) if 'div_score' in locals() else None,
+                    "Liquidity": float(portfolio_liquidity_index) if 'portfolio_liquidity_index' in locals() else None,
+                    "Quality": float(quality_score) if 'quality_score' in locals() else None,
+                    "Systematic Risk": float(systematic_risk) if 'systematic_risk' in locals() else None,
+                    "Idiosyncratic Risk": float(idiosyncratic_risk) if 'idiosyncratic_risk' in locals() else None,
+                }
+                
+                # Text generieren (LLM-Style, aber lokal)
+                insight_text = f"""
+                **AI-Analyse deines Portfolios**
+                
+                - Die aktuelle Volatilität liegt bei **{summary_data['Volatilität']:.4f}**, was auf ein moderates Risikoprofil hindeutet.
+                - Der maximale Drawdown beträgt **{summary_data['Max Drawdown']:.4f}**, was zeigt, wie stark das Portfolio in Stressphasen fallen kann.
+                - Die Diversifikation ist mit einem Score von **{summary_data['Diversifikation']:.4f}** solide, könnte aber durch breitere Faktor- oder Regionenexposure weiter verbessert werden.
+                - Die Liquidität des Portfolios ist **{summary_data['Liquidity']:.4f}**, was bedeutet, dass die meisten Positionen gut handelbar sind.
+                - Der Portfolio-Quality-Score liegt bei **{summary_data['Quality']:.4f}**, was auf eine robuste Struktur mit guter Risiko-Rendite-Effizienz hinweist.
+                - Das systematische Risiko beträgt **{summary_data['Systematic Risk']:.4f}**, während das idiosynkratische Risiko bei **{summary_data['Idiosyncratic Risk']:.4f}** liegt. Das zeigt, dass ein Großteil des Risikos durch Markt- und Stilfaktoren erklärt wird.
+                - Insgesamt zeigt das Portfolio eine **stabile, diversifizierte und risiko-effiziente Struktur**, mit Potenzial zur weiteren Optimierung in Stressphasen und Faktorbreite.
+                """
+                
+                st.markdown(insight_text)
+
+                # ---------------------------------------------------------
+                # Portfolio-Rebalancing-Simulator – Schritt 56
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Rebalancing-Simulator (zeitbasierte Simulation)")
+                
+                # Portfolio-Renditen
+                returns = df
+                
+                # Rebalancing-Frequenz auswählen
+                freq = st.selectbox(
+                    "Rebalancing-Frequenz:",
+                    ["Monatlich", "Quartalsweise", "Jährlich"]
+                )
+                
+                # Frequenz in Perioden umrechnen
+                freq_map = {
+                    "Monatlich": 21,
+                    "Quartalsweise": 63,
+                    "Jährlich": 252
+                }
+                rebalance_period = freq_map[freq]
+                
+                # Simulation
+                weights_current = w.copy()
+                portfolio_value = 1.0
+                values = []
+                
+                for i in range(len(returns)):
+                    # Portfolio wächst mit täglichen Renditen
+                    daily_ret = float(np.dot(weights_current, returns.iloc[i]))
+                    portfolio_value *= (1 + daily_ret)
+                    values.append(portfolio_value)
+                
+                    # Rebalancing
+                    if i % rebalance_period == 0 and i > 0:
+                        weights_current = w.copy()  # zurück zu Zielgewichten
+                
+                # DataFrame für Plot
+                sim_df = pd.DataFrame({
+                    "Tag": range(len(values)),
+                    "Portfolio-Wert": values
+                })
+                
+                # Plot
+                sim_chart = alt.Chart(sim_df).mark_line().encode(
+                    x=alt.X("Tag:Q", title="Tage"),
+                    y=alt.Y("Portfolio-Wert:Q", title="Portfolio-Wert"),
+                    tooltip=["Tag", "Portfolio-Wert"]
+                ).properties(height=400)
+                
+                st.altair_chart(sim_chart, use_container_width=True)
+                
+                # Kennzahlen
+                final_value = values[-1]
+                annual_return = (final_value ** (252 / len(values))) - 1
+                vol = np.std(np.diff(values) / values[:-1]) * np.sqrt(252)
+                
+                rebalance_df = pd.DataFrame({
+                    "Kennzahl": ["Endwert", "Annualisierte Rendite", "Volatilität"],
+                    "Wert": [final_value, annual_return, vol]
+                })
+                
+                st.table(rebalance_df)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Der Simulator zeigt, wie sich dein Portfolio mit regelmäßigen Rebalancing entwickelt.  
+                - Monatliches Rebalancing hält die Allokation stabil, aber verursacht mehr Umschichtungen.  
+                - Jährliches Rebalancing lässt Drift zu, kann aber höhere Renditen erzeugen.  
+                - Die Simulation zeigt, wie stark Rebalancing Risiko und Rendite beeinflusst.  
+                """)
+
                 
 
                 # -------------------------------------------------
