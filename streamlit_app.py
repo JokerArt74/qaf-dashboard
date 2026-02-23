@@ -243,7 +243,7 @@ with tab1:
                     st.markdown("</div>", unsafe_allow_html=True)
 
                 # ---------------------------------------------------------
-                # Efficient Frontier (Schritt 21)
+                # Efficient Frontier
                 # ---------------------------------------------------------
                 st.markdown("### ")
                 st.subheader("Effizienzlinie (Efficient Frontier)")
@@ -287,6 +287,61 @@ with tab1:
                 )
 
                 st.altair_chart(frontier_chart + optimized_point, use_container_width=True)
+                
+                # ---------------------------------------------------------
+                # Capital Market Line (CML)
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Capital Market Line (CML)")
+                
+                # Risikofreier Zinssatz
+                risk_free_rate = 0.02  # 2%
+                
+                # Sharpe Ratio des optimierten Portfolios
+                sharpe_opt = (port_return - risk_free_rate) / port_vol
+                
+                # Tangency Portfolio (max Sharpe)
+                frontier_df["Sharpe"] = (frontier_df["Return"] - risk_free_rate) / frontier_df["Volatility"]
+                tangency_point = frontier_df.iloc[frontier_df["Sharpe"].idxmax()]
+                
+                # CML Linie
+                cml_df = pd.DataFrame({
+                    "Volatility": [0, tangency_point["Volatility"]],
+                    "Return": [risk_free_rate, tangency_point["Return"]]
+                })
+                
+                cml_line = alt.Chart(cml_df).mark_line(color="#3EA6FF", strokeWidth=3).encode(
+                    x="Volatility",
+                    y="Return"
+                )
+                
+                # Punkt: Tangency Portfolio
+                tangency_chart = alt.Chart(pd.DataFrame({
+                    "Volatility": [tangency_point["Volatility"]],
+                    "Return": [tangency_point["Return"]]
+                })).mark_circle(size=200, color="#FFCC00").encode(
+                    x="Volatility",
+                    y="Return"
+                )
+                
+                # Punkt: Dein optimiertes Portfolio
+                opt_point_cml = alt.Chart(pd.DataFrame({
+                    "Volatility": [port_vol],
+                    "Return": [port_return]
+                })).mark_circle(size=200, color="#00FFAA").encode(
+                    x="Volatility",
+                    y="Return"
+                )
+                
+                # Alles zusammen rendern
+                st.altair_chart(cml_line + tangency_chart + opt_point_cml, use_container_width=True)
+                
+                # Kennzahlen anzeigen
+                st.markdown(f"""
+                **Sharpe Ratio (Optimiertes Portfolio):** {round(sharpe_opt, 4)}  
+                **Sharpe Ratio (Tangency Portfolio):** {round(tangency_point['Sharpe'], 4)}  
+                """)
 
                 # -------------------------------------------------
                 # EXECUTIVE SUMMARY
