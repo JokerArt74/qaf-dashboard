@@ -3,28 +3,38 @@ import pandas as pd
 import numpy as np
 import altair as alt
 
-def simple_optimizer(returns_df, target_return=0.08, long_only=True):
+def mean_variance_optimizer(returns_df, long_only=True):
     """
-    Sehr einfache Optimierung:
-    - Berechnet Mittelwerte der Renditen
-    - Normalisiert sie zu Gewichten
-    - Optional: setzt negative Gewichte auf 0 (Long Only)
+    Einfache Mean-Variance-Optimierung (ohne cvxpy):
+    - Minimiert Risiko = w^T Σ w
+    - Unter Nebenbedingungen:
+        * Summe der Gewichte = 1
+        * Optional: w >= 0 (Long Only)
     """
 
-    # Durchschnittliche Renditen
-    mean_returns = returns_df.mean()
+    # Kovarianzmatrix und Anzahl Assets
+    cov = returns_df.cov().values
+    n = cov.shape[0]
+
+    # Inverse der Kovarianzmatrix
+    try:
+        inv_cov = np.linalg.inv(cov)
+    except np.linalg.LinAlgError:
+        # Falls Matrix nicht invertierbar ist → leichte Regularisierung
+        cov += np.eye(n) * 1e-6
+        inv_cov = np.linalg.inv(cov)
+
+    # Gleichgewichtung nach Risiko (Minimum Variance Portfolio)
+    ones = np.ones(n)
+    weights = inv_cov @ ones
+    weights = weights / weights.sum()
 
     # Long-only erzwingen
     if long_only:
-        mean_returns = mean_returns.clip(lower=0)
+        weights = np.clip(weights, 0, None)
+        weights = weights / weights.sum()
 
-    # Wenn alles 0 ist → gleichgewichten
-    if mean_returns.sum() == 0:
-        weights = np.ones(len(mean_returns)) / len(mean_returns)
-    else:
-        weights = mean_returns / mean_returns.sum()
-
-    return weights.round(4)
+    return pd.Series(weights, index=returns_df.columns).round(4)
 
 st.title("QAF – Portfolio Optimizer Demo")
 
