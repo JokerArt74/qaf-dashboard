@@ -97,7 +97,7 @@ if uploaded_file:
 df = pd.read_csv(uploaded_file)
 
 # Optimierung ausführen
-weights = simple_optimizer(df, target_return, long_only)
+weights = mean_variance_optimizer(df, long_only)
 
 # Ergebnis anzeigen
 st.write("Berechnete Gewichte:")
