@@ -243,48 +243,41 @@ with tab1:
                     st.markdown("</div>", unsafe_allow_html=True)
 
                 # ---------------------------------------------------------
-                # Efficient Frontier (Effizienzlinie)
+                # Efficient Frontier (Schritt 21)
                 # ---------------------------------------------------------
-                
                 st.markdown("### ")
                 st.subheader("Effizienzlinie (Efficient Frontier)")
-                
-                # Anzahl zufälliger Portfolios
+
                 num_portfolios = 5000
-                
                 returns = df
                 mean_returns = returns.mean() * 252
                 cov_matrix = returns.cov() * 252
                 num_assets = len(mean_returns)
-                
+
                 results = np.zeros((3, num_portfolios))
-                
+
                 for i in range(num_portfolios):
-                    # zufällige Gewichte
                     weights_rand = np.random.random(num_assets)
                     weights_rand /= np.sum(weights_rand)
-                
-                    # Portfolio-Kennzahlen
+
                     portfolio_return = np.sum(mean_returns * weights_rand)
                     portfolio_vol = np.sqrt(weights_rand.T @ cov_matrix.values @ weights_rand)
-                
+
                     results[0, i] = portfolio_vol
                     results[1, i] = portfolio_return
-                    results[2, i] = 0  # Dummy für Chart
-                
-                # DataFrame für Frontier
+                    results[2, i] = 0
+
                 frontier_df = pd.DataFrame({
                     "Volatility": results[0],
                     "Return": results[1]
                 })
-                
-                # Chart
+
                 frontier_chart = alt.Chart(frontier_df).mark_circle(size=20, color="#555555").encode(
                     x=alt.X("Volatility", title="Volatilität"),
                     y=alt.Y("Return", title="Rendite"),
                     tooltip=["Volatility", "Return"]
                 )
-                
+
                 optimized_point = alt.Chart(pd.DataFrame({
                     "Volatility": [port_vol],
                     "Return": [port_return]
@@ -292,50 +285,50 @@ with tab1:
                     x="Volatility",
                     y="Return"
                 )
-                
+
                 st.altair_chart(frontier_chart + optimized_point, use_container_width=True)
-                
-                                # -------------------------------------------------
-                                # EXECUTIVE SUMMARY
-                                # -------------------------------------------------
-                                st.markdown("""
-                                <div style="
-                                    background-color:#111111;
-                                    padding:20px;
-                                    border-radius:10px;
-                                    border:1px solid #222222;
-                                    margin-top:20px;
-                                ">
-                                <h3 style="color:white;">Kurzfassung für Entscheider</h3>
-                                <p style="color:#CCCCCC;">
-                                <b>Zielrendite:</b> """ + str(target_return) + """<br>
-                                <b>Long-Only:</b> """ + str(long_only) + """<br>
-                                <b>Optimiertes Portfolio:</b><br>
-                                Rendite <b>""" + str(round(port_return,4)) + """</b>, 
-                                Volatilität <b>""" + str(round(port_vol,4)) + """</b>
-                                </p>
-                                </div>
-                                """, unsafe_allow_html=True)
-                
-                                # -------------------------------------------------
-                                # DOWNLOAD BUTTON
-                                # -------------------------------------------------
-                                report_df = pd.DataFrame({
-                                    "Asset": weights.index,
-                                    "Weight": weights.values
-                                })
-                
-                                csv = report_df.to_csv(index=False).encode("utf-8")
-                
-                                st.download_button(
-                                    label="📥 Optimierungsreport herunterladen",
-                                    data=csv,
-                                    file_name="qaf_optimierungsreport.csv",
-                                    mime="text/csv"
-                                )
-                
-                    else:
-                        st.info("Bitte zuerst eine Datei hochladen, um die Optimierung zu aktivieren.")
+
+                # -------------------------------------------------
+                # EXECUTIVE SUMMARY
+                # -------------------------------------------------
+                st.markdown("""
+                <div style="
+                    background-color:#111111;
+                    padding:20px;
+                    border-radius:10px;
+                    border:1px solid #222222;
+                    margin-top:20px;
+                ">
+                <h3 style="color:white;">Kurzfassung für Entscheider</h3>
+                <p style="color:#CCCCCC;">
+                <b>Zielrendite:</b> """ + str(target_return) + """<br>
+                <b>Long-Only:</b> """ + str(long_only) + """<br>
+                <b>Optimiertes Portfolio:</b><br>
+                Rendite <b>""" + str(round(port_return,4)) + """</b>, 
+                Volatilität <b>""" + str(round(port_vol,4)) + """</b>
+                </p>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # -------------------------------------------------
+                # DOWNLOAD BUTTON
+                # -------------------------------------------------
+                report_df = pd.DataFrame({
+                    "Asset": weights.index,
+                    "Weight": weights.values
+                })
+
+                csv = report_df.to_csv(index=False).encode("utf-8")
+
+                st.download_button(
+                    label="📥 Optimierungsreport herunterladen",
+                    data=csv,
+                    file_name="qaf_optimierungsreport.csv",
+                    mime="text/csv"
+                )
+
+    else:
+        st.info("Bitte zuerst eine Datei hochladen, um die Optimierung zu aktivieren.")
 
 # =========================================================
 # =======================  TAB 2  =========================
