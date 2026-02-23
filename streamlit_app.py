@@ -80,27 +80,31 @@ with tab1:
         df_preview = pd.read_csv(uploaded_file)
         st.dataframe(df_preview.head())
 
-        st.subheader("Parameter für die Optimierung:")
+       st.subheader("Parameter für die Optimierung:")
 
-        target_return = st.number_input(
-            "Zielrendite (z. B. 0.08 für 8%)",
-            value=0.08,
-            step=0.01
-        )
+col1, col2 = st.columns(2)
 
-        long_only = st.checkbox("Nur Long-Positionen erlauben", value=True)
+with col1:
+    target_return = st.number_input(
+        "Zielrendite (z. B. 0.08 für 8%)",
+        value=0.08,
+        step=0.01
+    )
 
-        max_weight = st.number_input(
-            "Maximalgewicht pro Asset (z. B. 0.3 für 30%)",
-            value=0.3,
-            step=0.05
-        )
+    long_only = st.checkbox("Nur Long-Positionen erlauben", value=True)
 
-        min_weight = st.number_input(
-            "Minimalgewicht pro Asset (z. B. 0.0 für 0%)",
-            value=0.0,
-            step=0.01
-        )
+with col2:
+    max_weight = st.number_input(
+        "Maximalgewicht pro Asset (z. B. 0.3 für 30%)",
+        value=0.3,
+        step=0.05
+    )
+
+    min_weight = st.number_input(
+        "Minimalgewicht pro Asset (z. B. 0.0 für 0%)",
+        value=0.0,
+        step=0.01
+    )
 
         run_opt = st.button("Optimierung starten")
 
@@ -127,12 +131,18 @@ with tab1:
                 port_return = float(mean_returns @ w)
                 port_vol = float(np.sqrt(w @ cov.values @ w))
 
-                st.write("Berechnete Gewichte:")
-                st.table(weights)
+                colA, colB = st.columns([1, 1])
 
-                st.write("Geschätzte erwartete Jahresrendite:", round(port_return, 4))
-                st.write("Geschätzte erwartete Volatilität:", round(port_vol, 4))
+with colA:
+    st.write("Berechnete Gewichte:")
+    st.table(weights)
 
+with colB:
+    st.write("Kennzahlen:")
+    st.metric("Erwartete Rendite", f"{round(port_return,4)}")
+    st.metric("Volatilität", f"{round(port_vol,4)}")
+
+                st.markdown("### ")
                 st.subheader("Risiko/Rendite-Profil")
 
                 chart_data_rr = pd.DataFrame({
@@ -148,11 +158,18 @@ with tab1:
                 )
 
                 st.altair_chart(scatter, use_container_width=True)
+                st.markdown("---")
 
-                st.subheader("Kurzfassung für Entscheider")
-                st.write(f"- Zielrendite-Einstellung: {target_return}")
-                st.write(f"- Long-Only: {long_only}")
-                st.write(f"- Optimiertes Portfolio: Rendite {round(port_return,4)}, Volatilität {round(port_vol,4)}")
+                with st.container():
+    st.markdown("### Kurzfassung für Entscheider")
+    st.info(
+        f"""
+        **Zielrendite:** {target_return}  
+        **Long-Only:** {long_only}  
+        **Optimiertes Portfolio:**  
+        Rendite **{round(port_return,4)}**, Volatilität **{round(port_vol,4)}**
+        """
+    )
 
     else:
         st.info("Bitte zuerst eine Datei hochladen, um die Optimierung zu aktivieren.")
