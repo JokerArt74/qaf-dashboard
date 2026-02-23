@@ -1,4 +1,29 @@
 import streamlit as st
+import pandas as pd
+import numpy as np
+
+def simple_optimizer(returns_df, target_return=0.08, long_only=True):
+    """
+    Sehr einfache Optimierung:
+    - Berechnet Mittelwerte der Renditen
+    - Normalisiert sie zu Gewichten
+    - Optional: setzt negative Gewichte auf 0 (Long Only)
+    """
+
+    # Durchschnittliche Renditen
+    mean_returns = returns_df.mean()
+
+    # Long-only erzwingen
+    if long_only:
+        mean_returns = mean_returns.clip(lower=0)
+
+    # Wenn alles 0 ist → gleichgewichten
+    if mean_returns.sum() == 0:
+        weights = np.ones(len(mean_returns)) / len(mean_returns)
+    else:
+        weights = mean_returns / mean_returns.sum()
+
+    return weights.round(4)
 
 st.title("QAF – Portfolio Optimizer Demo")
 
@@ -55,10 +80,21 @@ if uploaded_file:
         "TSLA": 0.10
     }
 
-    st.subheader("Optimierungsergebnis (Demo)")
-    st.write("Dies ist ein Platzhalter. Später kommen hier echte Berechnungen hin.")
+   st.subheader("Optimierungsergebnis")
 
-    st.table(fake_weights)
+# Datei einlesen
+df = pd.read_csv(uploaded_file)
+
+# Optimierung ausführen
+weights = simple_optimizer(df, target_return, long_only)
+
+# Ergebnis anzeigen
+st.write("Berechnete Gewichte:")
+st.table(weights)
+
+# Erwartete Rendite (sehr einfache Schätzung)
+expected_return = float((df.mean() * 252).mean())
+st.write("Geschätzte erwartete Jahresrendite:", round(expected_return, 4))
 
     st.info("Im nächsten Schritt ersetzen wir dieses Fake-Ergebnis durch echte Optimierung.")
 else:
