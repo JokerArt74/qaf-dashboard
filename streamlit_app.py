@@ -5,36 +5,42 @@ import altair as alt
 
 def mean_variance_optimizer(returns_df, long_only=True):
     """
-    Einfache Mean-Variance-Optimierung (ohne cvxpy):
-    - Minimiert Risiko = w^T Σ w
-    - Unter Nebenbedingungen:
-        * Summe der Gewichte = 1
-        * Optional: w >= 0 (Long Only)
+    Stabile Mean-Variance-Optimierung:
+    - Entfernt Assets mit zu vielen fehlenden Werten
+    - Füllt kleine Lücken automatisch
+    - Regularisiert die Kovarianzmatrix
+    - Berechnet Minimum-Variance-Gewichte
     """
 
-    # Kovarianzmatrix und Anzahl Assets
+    # 1. Fehlende Werte bereinigen
+    returns_df = returns_df.dropna(axis=1, thresh=len(returns_df) * 0.8)
+    returns_df = returns_df.fillna(method="ffill").fillna(method="bfill")
+
+    # Falls nach Bereinigung nichts übrig bleibt → gleichgewichten
+    if returns_df.shape[1] == 0:
+        return pd.Series([], dtype=float)
+
+    # 2. Kovarianzmatrix berechnen
     cov = returns_df.cov().values
     n = cov.shape[0]
 
-    # Inverse der Kovarianzmatrix
-    try:
-        inv_cov = np.linalg.inv(cov)
-    except np.linalg.LinAlgError:
-        # Falls Matrix nicht invertierbar ist → leichte Regularisierung
-        cov += np.eye(n) * 1e-6
-        inv_cov = np.linalg.inv(cov)
+    # 3. Regularisierung (macht Matrix invertierbar)
+    cov += np.eye(n) * 1e-6
 
-    # Gleichgewichtung nach Risiko (Minimum Variance Portfolio)
+    # 4. Inverse berechnen
+    inv_cov = np.linalg.inv(cov)
+
+    # 5. Minimum-Variance-Gewichte
     ones = np.ones(n)
     weights = inv_cov @ ones
     weights = weights / weights.sum()
 
-    # Long-only erzwingen
+    # 6. Long-only erzwingen
     if long_only:
         weights = np.clip(weights, 0, None)
         weights = weights / weights.sum()
 
-    return pd.Series(weights, index=returns_df.columns).round(4)
+    return pd.Series(weights.round(4), index=returns_df.columns)
 
 st.title("QAF – Portfolio Optimizer Demo")
 
@@ -94,7 +100,7 @@ if uploaded_file:
    st.subheader("Optimierungsergebnis")
 
 # Datei einlesen
-df = pd.read_csv(uploaded_file)
+df = pd.read_csv(uploaded_file).dropna()
 
 # Optimierung ausführen
 weights = mean_variance_optimizer(df, long_only)
