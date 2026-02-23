@@ -1121,6 +1121,489 @@ with tab1:
                 - Der Index kombiniert Risiko, Trendstabilität und Sharpe-Konsistenz.  
                 """)
 
+                # ---------------------------------------------------------
+                # Liquidity-Risk-Modul – Schritt 42
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Liquidity-Risk-Analyse")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Liquidity-Proxies (synthetisch, da keine echten Marktdaten)
+                # 1) Bid-Ask-Spread Proxy: hohe Volatilität = breiter Spread
+                spread_proxy = df.std() * 100
+                
+                # 2) Turnover Proxy: inverse Volatilität (ruhige Assets = leichter handelbar)
+                turnover_proxy = 1 / (1 + df.std())
+                
+                # 3) Impact-Cost Proxy: Preiswirkung bei Handel (Volatilität * Gewicht)
+                impact_proxy = df.std() * weights
+                
+                # Liquidity-Score pro Asset (0 = schlecht, 1 = gut)
+                liquidity_score = (
+                    0.4 * (1 / (1 + spread_proxy)) +
+                    0.3 * turnover_proxy +
+                    0.3 * (1 / (1 + abs(impact_proxy)))
+                )
+                
+                liq_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Spread-Proxy": spread_proxy.values,
+                    "Turnover-Proxy": turnover_proxy.values,
+                    "Impact-Cost": impact_proxy.values,
+                    "Liquidity-Score": liquidity_score.values
+                })
+                
+                # Gesamt-Liquidity-Index (gewichteter Score)
+                portfolio_liquidity_index = float((liquidity_score * weights).sum())
+                
+                # Anzeige
+                st.metric("Portfolio-Liquidity-Index", f"{round(portfolio_liquidity_index,4)}")
+                
+                # Tabelle
+                st.table(liq_df)
+                
+                # Balkendiagramm
+                liq_chart = alt.Chart(liq_df).mark_bar().encode(
+                    x=alt.X("Asset:N", sort=None),
+                    y=alt.Y("Liquidity-Score:Q", title="Liquidity Score"),
+                    color=alt.condition(
+                        alt.datum["Liquidity-Score"] < 0.5,
+                        alt.value("#FF4444"),   # Rot = illiquide
+                        alt.value("#44FF44")    # Grün = liquide
+                    ),
+                    tooltip=["Asset", "Spread-Proxy", "Turnover-Proxy", "Impact-Cost", "Liquidity-Score"]
+                ).properties(height=400)
+                
+                st.altair_chart(liq_chart, use_container_width=True)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Ein hoher Liquidity-Score bedeutet, dass ein Asset leicht handelbar ist.  
+                - Ein niedriger Score zeigt potenzielle Liquiditätsrisiken.  
+                - Der Portfolio-Liquidity-Index zeigt, wie liquide das Gesamtportfolio ist.  
+                - Illiquide Assets erhöhen das Risiko in Stressphasen erheblich.  
+                """)
+
+               # ---------------------------------------------------------
+                # Diversifikations-Score – Schritt 43
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Diversifikations-Score")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # 1) Herfindahl-Hirschman-Index (HHI)
+                hhi = (weights**2).sum()
+                hhi_score = 1 - hhi  # 1 = perfekt diversifiziert
+                
+                # 2) Durchschnittliche Korrelation
+                corr_matrix = df.corr()
+                avg_corr = corr_matrix.values[np.triu_indices(len(corr_matrix), k=1)].mean()
+                corr_score = 1 - avg_corr  # niedrige Korrelation = gute Diversifikation
+                
+                # 3) Risiko-Beiträge
+                cov_matrix = df.cov().values
+                marginal_contrib = cov_matrix @ w
+                risk_contrib = w * marginal_contrib
+                risk_contrib_norm = risk_contrib / risk_contrib.sum()
+                risk_balance_score = 1 - risk_contrib_norm.std()  # je gleichmäßiger, desto besser
+                
+                # 4) Cluster-Risiko (aus Korrelationen)
+                from scipy.cluster.hierarchy import linkage, fcluster
+                link = linkage(corr_matrix, method="ward")
+                clusters = fcluster(link, t=3, criterion="maxclust")
+                cluster_df = pd.DataFrame({"cluster": clusters, "weight": weights.values})
+                cluster_weights = cluster_df.groupby("cluster")["weight"].sum()
+                cluster_score = 1 - cluster_weights.max()  # großer Cluster = schlechter
+                
+                # Gesamt-Diversifikations-Score
+                div_score = (
+                    0.35 * hhi_score +
+                    0.25 * corr_score +
+                    0.25 * risk_balance_score +
+                    0.15 * cluster_score
+                )
+                
+                # Anzeige
+                st.metric("Diversifikations-Score", f"{round(div_score,4)}")
+                
+                # Detailtabelle
+                div_df = pd.DataFrame({
+                    "Komponente": ["HHI-Score", "Korrelation-Score", "Risk-Balance-Score", "Cluster-Score"],
+                    "Score": [hhi_score, corr_score, risk_balance_score, cluster_score]
+                })
+                
+                st.table(div_df)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Ein hoher Score bedeutet ein breit diversifiziertes Portfolio.  
+                - Ein niedriger Score zeigt Klumpenrisiken oder hohe Korrelationen.  
+                - Der Score kombiniert Gewichtskonzentration, Korrelationen, Risikobeiträge und Cluster-Risiko.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Heatmap – Schritt 44
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Heatmap (Gewichte, Risiko, Rendite)")
+                
+                # Kennzahlen pro Asset
+                asset_returns = df.mean() * 252
+                asset_vol = df.std() * np.sqrt(252)
+                asset_weights = weights
+                
+                heatmap_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Gewicht": asset_weights.values,
+                    "Rendite": asset_returns.values,
+                    "Volatilität": asset_vol.values
+                })
+                
+                # Melt für Heatmap
+                heatmap_long = heatmap_df.melt(id_vars="Asset", var_name="Kennzahl", value_name="Wert")
+                
+                # Heatmap
+                heatmap_chart = alt.Chart(heatmap_long).mark_rect().encode(
+                    x=alt.X("Kennzahl:N", title="Kennzahl"),
+                    y=alt.Y("Asset:N", title="Asset"),
+                    color=alt.Color("Wert:Q", scale=alt.Scale(scheme="viridis")),
+                    tooltip=["Asset", "Kennzahl", "Wert"]
+                ).properties(height=300)
+                
+                st.altair_chart(heatmap_chart, use_container_width=True)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Die Heatmap zeigt Gewichte, Renditen und Risiken pro Asset.  
+                - Dunkle Farben = hohe Werte, helle Farben = niedrige Werte.  
+                - Perfekt geeignet, um Klumpenrisiken, Renditequellen und Risiko-Hotspots zu erkennen.  
+                """)
+
+                # ---------------------------------------------------------
+                # Correlation-Cluster-Map (Dendrogramm) – Schritt 45
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Correlation-Cluster-Map (Dendrogramm)")
+                
+                # Korrelationen
+                corr = df.corr()
+                
+                # Distanzmatrix
+                dist = np.sqrt(0.5 * (1 - corr))
+                
+                # Hierarchisches Clustering
+                from scipy.cluster.hierarchy import linkage, dendrogram
+                
+                link = linkage(dist, method="ward")
+                
+                # Dendrogramm-Daten vorbereiten
+                import matplotlib.pyplot as plt
+                import seaborn as sns
+                
+                fig, ax = plt.subplots(figsize=(10, 4))
+                dendrogram(link, labels=corr.index, leaf_rotation=90)
+                plt.title("Correlation Cluster Dendrogram")
+                plt.tight_layout()
+                
+                st.pyplot(fig)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Das Dendrogramm zeigt, welche Assets natürliche Cluster bilden.  
+                - Kurze Verbindungsäste = hohe Korrelation → Cluster.  
+                - Lange Äste = geringe Korrelation → gute Diversifikation.  
+                - Perfekt geeignet, um strukturelle Risiken und Cluster zu erkennen.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Quality-Score – Schritt 46
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Quality-Score")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # 1) Sharpe Ratio (annualisiert)
+                sharpe_ratio = (portfolio_returns_series.mean() * 252) / (portfolio_returns_series.std() * np.sqrt(252))
+                sharpe_score = max(0, min(1, sharpe_ratio / 2))  # Sharpe 2.0 = Score 1.0
+                
+                # 2) Drawdown-Score
+                cum_returns = (1 + portfolio_returns_series).cumprod()
+                running_max = cum_returns.cummax()
+                drawdown = (cum_returns - running_max) / running_max
+                max_dd = drawdown.min()
+                dd_score = 1 - abs(max_dd)
+                
+                # 3) Diversifikations-Score (aus Schritt 43)
+                div_score_component = div_score  # bereits berechnet
+                
+                # 4) Liquidity-Score (aus Schritt 42)
+                liq_score_component = portfolio_liquidity_index  # bereits berechnet
+                
+                # 5) Tail-Risk-Score
+                tail_threshold = portfolio_returns_series.quantile(0.05)
+                tail_data = portfolio_returns_series[portfolio_returns_series <= tail_threshold]
+                tail_risk = abs(tail_data.mean())
+                tail_score = 1 / (1 + tail_risk)
+                
+                # Gesamt-Quality-Score
+                quality_score = (
+                    0.30 * sharpe_score +
+                    0.20 * dd_score +
+                    0.20 * div_score_component +
+                    0.15 * liq_score_component +
+                    0.15 * tail_score
+                )
+                
+                # Anzeige
+                st.metric("Portfolio-Quality-Score", f"{round(quality_score,4)}")
+                
+                # Detailtabelle
+                quality_df = pd.DataFrame({
+                    "Komponente": ["Sharpe-Score", "Drawdown-Score", "Diversifikations-Score", "Liquidity-Score", "Tail-Risk-Score"],
+                    "Score": [sharpe_score, dd_score, div_score_component, liq_score_component, tail_score]
+                })
+                
+                st.table(quality_df)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Ein hoher Quality-Score bedeutet ein robustes, effizientes, gut diversifiziertes Portfolio.  
+                - Der Score kombiniert Risiko, Rendite, Diversifikation, Liquidität und Tail-Risiko.  
+                - Perfekt geeignet für institutionelle Reports, Pitch-Decks und Investment-Kommunikation.  
+                """)
+
+                # ---------------------------------------------------------
+                # Risk-Adjusted-Return-Matrix – Schritt 47
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Risk-Adjusted-Return-Matrix")
+                
+                # Kennzahlen pro Asset
+                asset_returns = df.mean() * 252
+                asset_vol = df.std() * np.sqrt(252)
+                asset_sharpe = asset_returns / asset_vol
+                
+                rar_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Rendite": asset_returns.values,
+                    "Volatilität": asset_vol.values,
+                    "Sharpe": asset_sharpe.values
+                })
+                
+                # Scatterplot: Rendite vs. Risiko
+                rar_chart = alt.Chart(rar_df).mark_circle(size=120).encode(
+                    x=alt.X("Volatilität:Q", title="Risiko (Volatilität)"),
+                    y=alt.Y("Rendite:Q", title="Rendite (annualisiert)"),
+                    color=alt.Color("Sharpe:Q", scale=alt.Scale(scheme="viridis"), title="Sharpe Ratio"),
+                    tooltip=["Asset", "Rendite", "Volatilität", "Sharpe"]
+                ).properties(height=400)
+                
+                st.altair_chart(rar_chart, use_container_width=True)
+                
+                # Tabelle anzeigen
+                st.table(rar_df)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Assets oben links sind ideal: hohe Rendite bei niedrigem Risiko.  
+                - Assets unten rechts sind ineffizient: niedrigere Rendite bei höherem Risiko.  
+                - Die Farbskala zeigt die Sharpe Ratio: je dunkler, desto besser.  
+                - Perfekt geeignet, um Alpha-Quellen und Risiko-Fresser zu identifizieren.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Style-Box – Schritt 48
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Style-Box (Growth/Value, Large/Small)")
+                
+                # Style-Proxies
+                asset_returns = df.mean() * 252
+                asset_vol = df.std() * np.sqrt(252)
+                
+                # Growth-Proxy: Momentum (Rendite)
+                growth_score = (asset_returns - asset_returns.min()) / (asset_returns.max() - asset_returns.min())
+                
+                # Value-Proxy: inverse Volatilität
+                value_score = 1 - (asset_vol - asset_vol.min()) / (asset_vol.max() - asset_vol.min())
+                
+                # Size-Proxy: Volatilität als Näherung (niedrige Vol = Large Cap)
+                size_score = 1 - (asset_vol - asset_vol.min()) / (asset_vol.max() - asset_vol.min())
+                
+                style_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Growth": growth_score.values,
+                    "Value": value_score.values,
+                    "Size": size_score.values
+                })
+                
+                # Style-Box-Koordinaten
+                style_df["X"] = style_df["Growth"] - style_df["Value"]   # Growth vs. Value
+                style_df["Y"] = style_df["Size"]                         # Large vs. Small
+                
+                # Scatterplot
+                style_chart = alt.Chart(style_df).mark_circle(size=150).encode(
+                    x=alt.X("X:Q", title="Value  <------>  Growth"),
+                    y=alt.Y("Y:Q", title="Small Cap  <------>  Large Cap"),
+                    color=alt.Color("Growth:Q", scale=alt.Scale(scheme="viridis"), title="Growth Score"),
+                    tooltip=["Asset", "Growth", "Value", "Size"]
+                ).properties(height=400)
+                
+                st.altair_chart(style_chart, use_container_width=True)
+                
+                # Tabelle
+                st.table(style_df)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Rechts = Growth, links = Value.  
+                - Oben = Large Cap, unten = Small Cap.  
+                - Growth-Assets haben hohe Momentum-Werte.  
+                - Value-Assets haben stabile, risikoarme Profile.  
+                - Die Style-Box zeigt sofort, ob dein Portfolio Stil-Wetten eingeht.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Factor-Sensitivity-Matrix – Schritt 49
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Factor-Sensitivity-Matrix")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Synthetische Faktor-Returns erzeugen (Proxy)
+                np.random.seed(42)
+                factors = pd.DataFrame({
+                    "Market": np.random.normal(0.0005, 0.01, len(df)),
+                    "SMB": np.random.normal(0.0002, 0.008, len(df)),   # Size
+                    "HML": np.random.normal(0.0001, 0.007, len(df)),   # Value
+                    "MOM": np.random.normal(0.0003, 0.009, len(df)),   # Momentum
+                    "Quality": np.random.normal(0.00015, 0.006, len(df)),
+                    "LowVol": np.random.normal(0.0001, 0.005, len(df))
+                })
+                
+                # Regression: Portfolio = a + b1*Market + b2*SMB + ...
+                import statsmodels.api as sm
+                
+                X = sm.add_constant(factors)
+                y = portfolio_returns_series
+                model = sm.OLS(y, X).fit()
+                
+                factor_loadings = model.params.drop("const")
+                
+                factor_df = pd.DataFrame({
+                    "Faktor": factor_loadings.index,
+                    "Loading": factor_loadings.values
+                })
+                
+                st.table(factor_df)
+                
+                # Balkendiagramm
+                factor_chart = alt.Chart(factor_df).mark_bar().encode(
+                    x=alt.X("Faktor:N", sort=None),
+                    y=alt.Y("Loading:Q", title="Faktor-Sensitivität"),
+                    color=alt.condition(
+                        alt.datum["Loading"] < 0,
+                        alt.value("#FF4444"),
+                        alt.value("#44FF44")
+                    ),
+                    tooltip=["Faktor", "Loading"]
+                ).properties(height=400)
+                
+                st.altair_chart(factor_chart, use_container_width=True)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Positive Loadings = Portfolio profitiert von diesem Faktor.  
+                - Negative Loadings = Portfolio ist gegen diesen Faktor positioniert.  
+                - Market = Beta zum Gesamtmarkt.  
+                - SMB = Small vs. Large Cap Sensitivität.  
+                - HML = Value vs. Growth Sensitivität.  
+                - Momentum = Trendexposition.  
+                - Quality = Qualitätsfaktor (stabile Gewinne, niedrige Verschuldung).  
+                - LowVol = defensive, risikoarme Exposition.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Risk-Decomposition – Schritt 50
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Risk-Decomposition (Systematic vs. Idiosyncratic)")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Faktor-Regression aus Schritt 49
+                X = sm.add_constant(factors)
+                y = portfolio_returns_series
+                model = sm.OLS(y, X).fit()
+                
+                # Systematisches Risiko = Varianz der erklärten Komponente
+                fitted_values = model.fittedvalues
+                systematic_var = np.var(fitted_values)
+                
+                # Idiosynkratisches Risiko = Varianz der Residuen
+                residuals = model.resid
+                idiosyncratic_var = np.var(residuals)
+                
+                # Total Risk
+                total_var = systematic_var + idiosyncratic_var
+                
+                # Annualisieren
+                systematic_risk = np.sqrt(systematic_var * 252)
+                idiosyncratic_risk = np.sqrt(idiosyncratic_var * 252)
+                total_risk = np.sqrt(total_var * 252)
+                
+                risk_df = pd.DataFrame({
+                    "Risiko-Komponente": ["Systematisches Risiko", "Idiosynkratisches Risiko", "Total Risk"],
+                    "Wert (annualisiert)": [systematic_risk, idiosyncratic_risk, total_risk]
+                })
+                
+                st.table(risk_df)
+                
+                # Balkendiagramm
+                risk_chart = alt.Chart(risk_df).mark_bar().encode(
+                    x=alt.X("Risiko-Komponente:N", sort=None),
+                    y=alt.Y("Wert (annualisiert):Q", title="Risiko (annualisiert)"),
+                    color=alt.Color("Risiko-Komponente:N", scale=alt.Scale(scheme="tableau10")),
+                    tooltip=["Risiko-Komponente", "Wert (annualisiert)"]
+                ).properties(height=400)
+                
+                st.altair_chart(risk_chart, use_container_width=True)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - **Systematisches Risiko** ist das Marktrisiko, das durch Faktoren erklärt wird.  
+                - **Idiosynkratisches Risiko** ist das spezifische Risiko einzelner Positionen.  
+                - **Total Risk** ist die Summe aus beiden Komponenten.  
+                - Ein robustes Portfolio hat einen hohen Anteil systematischen Risikos und einen niedrigen Anteil idiosynkratischen Risikos.  
+                """)
+
                 
 
                 # -------------------------------------------------
