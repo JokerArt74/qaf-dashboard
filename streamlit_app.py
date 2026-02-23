@@ -27,6 +27,25 @@ st.info("Hier wird später der Upload von Portfoliodaten erscheinen.")
 
 st.subheader("Optimierungsbereich (kommt später)")
 st.info("Hier wird später der Optimizer angezeigt.")
+st.subheader("Optimierungsbereich")
+
+if uploaded_file:
+    st.write("Parameter für die Optimierung:")
+
+    target_return = st.number_input(
+        "Zielrendite (z. B. 0.08 für 8%)",
+        value=0.08,
+        step=0.01
+    )
+
+    long_only = st.checkbox("Nur Long-Positionen erlauben", value=True)
+
+    run_opt = st.button("Optimierung starten")
+
+    if run_opt:
+        st.warning("Die Optimierung wird später hier ausgeführt. Dies ist nur die Oberfläche.")
+else:
+    st.info("Bitte zuerst eine Datei hochladen, um die Optimierung zu aktivieren.")
 
 st.subheader("Ergebnisbereich (kommt später)")
 st.info("Hier werden später die Ergebnisse angezeigt.")
