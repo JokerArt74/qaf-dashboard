@@ -1998,6 +1998,809 @@ with tab1:
                 - Die Simulation zeigt, wie stark Rebalancing Risiko und Rendite beeinflusst.  
                 """)
 
+                # ---------------------------------------------------------
+                # Portfolio-Carbon-Footprint (ESG-Modul) – Schritt 57
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Carbon-Footprint (ESG)")
+                
+                # Synthetische CO2-Intensitäten pro Asset (t CO2 pro 1 Mio. USD Umsatz)
+                np.random.seed(42)
+                carbon_intensity = pd.Series(
+                    np.random.uniform(20, 400, len(df.columns)),  # realistische Range
+                    index=df.columns
+                )
+                
+                # Portfolio-Carbon-Footprint berechnen
+                portfolio_carbon = float(np.dot(weights, carbon_intensity))
+                
+                # Tabelle
+                carbon_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Gewicht": weights.values,
+                    "CO2-Intensität (t/Mio USD)": carbon_intensity.values,
+                    "Beitrag zum Portfolio": weights.values * carbon_intensity.values
+                })
+                
+                st.table(carbon_df)
+                
+                # Balkendiagramm
+                carbon_chart = alt.Chart(carbon_df).mark_bar().encode(
+                    x=alt.X("Asset:N", sort=None),
+                    y=alt.Y("Beitrag zum Portfolio:Q", title="CO2-Beitrag"),
+                    color=alt.Color("CO2-Intensität (t/Mio USD):Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["Asset", "Gewicht", "CO2-Intensität (t/Mio USD)", "Beitrag zum Portfolio"]
+                ).properties(height=400)
+                
+                st.altair_chart(carbon_chart, use_container_width=True)
+                
+                # Kennzahl anzeigen
+                st.metric("Portfolio-Carbon-Footprint", f"{round(portfolio_carbon,2)} t CO₂ pro 1 Mio USD Umsatz")
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Die CO₂-Intensität zeigt, wie viel Emissionen ein Unternehmen pro Umsatz erzeugt.  
+                - Der Portfolio-Carbon-Footprint ist die gewichtete Summe aller Asset-Intensitäten.  
+                - Hohe Werte bedeuten ein CO₂-intensives Portfolio.  
+                - ESG-orientierte Investoren bevorzugen niedrige CO₂-Intensitäten.  
+                - Das Modul zeigt, welche Assets die größten Emissionsquellen sind.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Return-Attribution (Brinson-Modell) – Schritt 58
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Return-Attribution (Brinson-Modell)")
+                
+                # Benchmark synthetisch erzeugen (gleichgewichtet)
+                benchmark_weights = np.array([1/len(df.columns)] * len(df.columns))
+                
+                # Portfolio- und Benchmark-Renditen pro Asset
+                asset_returns = df.mean() * 252
+                
+                # Brinson-Komponenten
+                allocation_effect = (weights - benchmark_weights) * asset_returns.mean()
+                selection_effect = benchmark_weights * (asset_returns - asset_returns.mean())
+                interaction_effect = (weights - benchmark_weights) * (asset_returns - asset_returns.mean())
+                
+                # DataFrame
+                brinson_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Allocation Effect": allocation_effect,
+                    "Selection Effect": selection_effect,
+                    "Interaction Effect": interaction_effect
+                })
+                
+                brinson_df["Total Effect"] = (
+                    brinson_df["Allocation Effect"] +
+                    brinson_df["Selection Effect"] +
+                    brinson_df["Interaction Effect"]
+                )
+                
+                st.table(brinson_df)
+                
+                # Balkendiagramm
+                brinson_long = brinson_df.melt(id_vars="Asset", var_name="Komponente", value_name="Wert")
+                
+                brinson_chart = alt.Chart(brinson_long).mark_bar().encode(
+                    x=alt.X("Asset:N", sort=None),
+                    y=alt.Y("Wert:Q", title="Attribution"),
+                    color=alt.Color("Komponente:N", scale=alt.Scale(scheme="tableau10")),
+                    tooltip=["Asset", "Komponente", "Wert"]
+                ).properties(height=400)
+                
+                st.altair_chart(brinson_chart, use_container_width=True)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - **Allocation Effect:** Vorteil durch Über-/Untergewichtung von Sektoren/Assets.  
+                - **Selection Effect:** Vorteil durch bessere Titelselektion innerhalb eines Sektors.  
+                - **Interaction Effect:** Kombination aus Allokation und Selektion.  
+                - **Total Effect:** Gesamtbeitrag zur Outperformance.  
+                
+                Das Brinson-Modell zeigt, ob deine Outperformance aus **Strategie** (Allokation)  
+                oder **Skill** (Selektion) stammt.
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Turnover-Analyzer – Schritt 59
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Turnover-Analyzer")
+                
+                # Wir simulieren historische Gewichte durch Drift
+                # (realistisch, da Assets unterschiedlich performen)
+                weights_history = []
+                current_weights = w.copy()
+                
+                for i in range(len(df)):
+                    # tägliche Drift
+                    daily_returns = df.iloc[i].values
+                    current_weights = current_weights * (1 + daily_returns)
+                    current_weights = current_weights / current_weights.sum()
+                    weights_history.append(current_weights.copy())
+                
+                weights_history = np.array(weights_history)
+                
+                # Turnover berechnen
+                turnover_values = []
+                for i in range(1, len(weights_history)):
+                    turnover = np.sum(np.abs(weights_history[i] - weights_history[i-1])) / 2
+                    turnover_values.append(turnover)
+                
+                turnover_df = pd.DataFrame({
+                    "Tag": range(1, len(turnover_values)+1),
+                    "Turnover": turnover_values
+                })
+                
+                # Plot
+                turnover_chart = alt.Chart(turnover_df).mark_line().encode(
+                    x=alt.X("Tag:Q", title="Tage"),
+                    y=alt.Y("Turnover:Q", title="Turnover pro Tag"),
+                    tooltip=["Tag", "Turnover"]
+                ).properties(height=400)
+                
+                st.altair_chart(turnover_chart, use_container_width=True)
+                
+                # Kennzahlen
+                avg_turnover = np.mean(turnover_values)
+                max_turnover = np.max(turnover_values)
+                
+                turnover_stats = pd.DataFrame({
+                    "Kennzahl": ["Durchschnittlicher Turnover", "Maximaler Turnover"],
+                    "Wert": [avg_turnover, max_turnover]
+                })
+                
+                st.table(turnover_stats)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Turnover misst, wie stark sich die Gewichte von einem Tag zum nächsten verändern.  
+                - Hoher Turnover bedeutet hohe Handelsaktivität → potenziell höhere Transaktionskosten.  
+                - Niedriger Turnover bedeutet stabile Allokation → geringere Kosten, weniger Drift.  
+                - Der Analyzer zeigt, wie „aktiv“ dein Portfolio wirklich ist.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Concentration-Risk-Radar – Schritt 60
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Concentration-Risk-Radar")
+                
+                # Gewichte sortieren
+                sorted_weights = np.sort(weights.values)[::-1]
+                
+                # Konzentrationskennzahlen
+                top3 = sorted_weights[:3].sum()
+                top5 = sorted_weights[:5].sum()
+                top10 = sorted_weights[:10].sum() if len(sorted_weights) >= 10 else sorted_weights.sum()
+                
+                # Herfindahl-Hirschman-Index (HHI)
+                hhi = np.sum(weights.values**2)
+                
+                # Risiko-Beiträge
+                cov_matrix = df.cov().values
+                marginal_contrib = cov_matrix @ weights
+                risk_contrib = weights * marginal_contrib
+                risk_contrib_norm = risk_contrib / risk_contrib.sum()
+                
+                # Top-Risiko-Konzentration
+                risk_sorted = np.sort(risk_contrib_norm)[::-1]
+                risk_top3 = risk_sorted[:3].sum()
+                risk_top5 = risk_sorted[:5].sum()
+                
+                # Radar-Daten
+                radar_df = pd.DataFrame({
+                    "Kategorie": ["Top 3 Weights", "Top 5 Weights", "Top 10 Weights", "HHI", "Top 3 Risk", "Top 5 Risk"],
+                    "Wert": [top3, top5, top10, hhi, risk_top3, risk_top5]
+                })
+                
+                # Radar-Chart (Spider Chart)
+                radar_chart = alt.Chart(radar_df).mark_line(point=True).encode(
+                    theta=alt.Theta("Kategorie:N", sort=None),
+                    radius=alt.Radius("Wert:Q", scale=alt.Scale(type="linear", zero=True)),
+                    tooltip=["Kategorie", "Wert"]
+                ).properties(height=400)
+                
+                st.altair_chart(radar_chart, use_container_width=True)
+                
+                # Heat-Bar-Chart für Risiko-Konzentration
+                risk_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Risk Contribution": risk_contrib_norm
+                }).sort_values("Risk Contribution", ascending=False)
+                
+                risk_chart = alt.Chart(risk_df).mark_bar().encode(
+                    x=alt.X("Asset:N", sort=None),
+                    y=alt.Y("Risk Contribution:Q", title="Risiko-Beitrag"),
+                    color=alt.Color("Risk Contribution:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["Asset", "Risk Contribution"]
+                ).properties(height=400)
+                
+                st.altair_chart(risk_chart, use_container_width=True)
+                
+                # Kennzahlen-Tabelle
+                conc_df = pd.DataFrame({
+                    "Kennzahl": ["Top 3 Weights", "Top 5 Weights", "Top 10 Weights", "HHI", "Top 3 Risk", "Top 5 Risk"],
+                    "Wert": [top3, top5, top10, hhi, risk_top3, risk_top5]
+                })
+                
+                st.table(conc_df)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - **Top 3 / Top 5 / Top 10 Weights** zeigen, wie stark dein Portfolio auf wenige Positionen konzentriert ist.  
+                - **HHI** misst die strukturelle Konzentration (0 = perfekt diversifiziert, 1 = extrem konzentriert).  
+                - **Top 3 / Top 5 Risk** zeigen, welche Positionen das Risiko dominieren.  
+                - Ein robustes Portfolio hat niedrige Gewichtskonzentration und niedrige Risikokonzentration.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Liquidity-Stress-Test – Schritt 61
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Liquidity-Stress-Test")
+                
+                # Basis-Liquiditätsdaten (aus Schritt 42)
+                spread_proxy = df.std() * 100
+                turnover_proxy = 1 / (1 + df.std())
+                impact_proxy = df.std() * weights
+                
+                # Stress-Level auswählen
+                stress_level = st.selectbox(
+                    "Stress-Level auswählen:",
+                    ["Mild (x1.5 Spread)", "Moderate (x2 Spread)", "Severe (x3 Spread)", "Extreme (x5 Spread)"]
+                )
+                
+                stress_map = {
+                    "Mild (x1.5 Spread)": 1.5,
+                    "Moderate (x2 Spread)": 2.0,
+                    "Severe (x3 Spread)": 3.0,
+                    "Extreme (x5 Spread)": 5.0
+                }
+                
+                stress_factor = stress_map[stress_level]
+                
+                # Gestresste Liquiditätskennzahlen
+                spread_stressed = spread_proxy * stress_factor
+                impact_stressed = impact_proxy * stress_factor
+                
+                # Portfolio-Liquiditätsverlust
+                liquidity_loss = float(np.dot(weights, (spread_stressed - spread_proxy)))
+                
+                # Tabelle
+                liq_stress_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Spread (normal)": spread_proxy.values,
+                    "Spread (gestresst)": spread_stressed.values,
+                    "Impact (normal)": impact_proxy.values,
+                    "Impact (gestresst)": impact_stressed.values
+                })
+                
+                st.table(liq_stress_df)
+                
+                # Balkendiagramm
+                liq_stress_chart = alt.Chart(liq_stress_df).mark_bar().encode(
+                    x=alt.X("Asset:N", sort=None),
+                    y=alt.Y("Spread (gestresst):Q", title="Gestresster Spread"),
+                    color=alt.Color("Spread (gestresst):Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["Asset", "Spread (normal)", "Spread (gestresst)", "Impact (gestresst)"]
+                ).properties(height=400)
+                
+                st.altair_chart(liq_stress_chart, use_container_width=True)
+                
+                # Kennzahl anzeigen
+                st.metric("Portfolio-Liquiditätsverlust", f"{round(liquidity_loss,2)} (Spread-Einheiten)")
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Der Stress-Test zeigt, wie stark die Liquidität unter Stressbedingungen einbricht.  
+                - Höhere Spreads = teurer Handel, schlechtere Ausführungen, höhere Kosten.  
+                - Der Portfolio-Liquiditätsverlust zeigt, wie empfindlich dein Portfolio auf Marktstress reagiert.  
+                - Illiquide Assets verursachen unter Stress überproportional hohe Risiken.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Volatility-Regime-Map – Schritt 62
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Volatility-Regime-Map")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Rolling-Volatilität
+                rolling_vol = portfolio_returns_series.rolling(21).std() * np.sqrt(252)
+                
+                # Regime-Schwellen definieren
+                low_vol_threshold = rolling_vol.quantile(0.33)
+                high_vol_threshold = rolling_vol.quantile(0.66)
+                
+                # Regime klassifizieren
+                regime = []
+                for v in rolling_vol:
+                    if np.isnan(v):
+                        regime.append("None")
+                    elif v < low_vol_threshold:
+                        regime.append("Low Vol")
+                    elif v < high_vol_threshold:
+                        regime.append("Mid Vol")
+                    else:
+                        regime.append("High Vol")
+                
+                regime_series = pd.Series(regime, index=rolling_vol.index)
+                
+                # Regime-Renditen berechnen
+                regime_returns = {
+                    "Low Vol": portfolio_returns_series[regime_series == "Low Vol"].mean() * 252,
+                    "Mid Vol": portfolio_returns_series[regime_series == "Mid Vol"].mean() * 252,
+                    "High Vol": portfolio_returns_series[regime_series == "High Vol"].mean() * 252
+                }
+                
+                # Regime-Häufigkeit
+                regime_counts = regime_series.value_counts(normalize=True)
+                
+                # DataFrame für Heatmap
+                regime_df = pd.DataFrame({
+                    "Regime": ["Low Vol", "Mid Vol", "High Vol"],
+                    "Annualisierte Rendite": [
+                        regime_returns["Low Vol"],
+                        regime_returns["Mid Vol"],
+                        regime_returns["High Vol"]
+                    ],
+                    "Häufigkeit": [
+                        regime_counts.get("Low Vol", 0),
+                        regime_counts.get("Mid Vol", 0),
+                        regime_counts.get("High Vol", 0)
+                    ]
+                })
+                
+                st.table(regime_df)
+                
+                # Heatmap
+                regime_heat = alt.Chart(regime_df).mark_rect().encode(
+                    x=alt.X("Regime:N", title="Volatilitätsregime"),
+                    y=alt.Y("Häufigkeit:Q", title="Häufigkeit"),
+                    color=alt.Color("Annualisierte Rendite:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["Regime", "Annualisierte Rendite", "Häufigkeit"]
+                ).properties(height=400)
+                
+                st.altair_chart(regime_heat, use_container_width=True)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - **Low Vol Regime:** stabile Marktphasen, oft mit stetigen Renditen.  
+                - **Mid Vol Regime:** neutrale Marktphasen, Übergänge zwischen Ruhe und Stress.  
+                - **High Vol Regime:** Stressphasen, Krisen, Unsicherheit.  
+                - Die Heatmap zeigt, wie oft dein Portfolio in welchem Regime ist und wie es dort performt.  
+                - Ein robustes Portfolio zeigt **positive Renditen in Low/Mid Vol** und **begrenzte Verluste in High Vol**.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Scenario-Tree (Multi-Path-Simulation) – Schritt 63
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Scenario-Tree (Multi-Path-Simulation)")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Anzahl der Pfade
+                num_paths = 9  # 3x3 Baum
+                horizon = 30   # 30 Tage
+                
+                # Szenario-Shocks (synthetisch)
+                shock_levels = [-0.02, 0.0, 0.02]  # -2%, 0%, +2%
+                
+                paths = []
+                
+                for s1 in shock_levels:
+                    for s2 in shock_levels:
+                        # Zwei-Level-Schock
+                        path = []
+                        value = 1.0
+                
+                        for t in range(horizon):
+                            base_ret = portfolio_returns_series.mean()
+                            shock = 0
+                
+                            if t < 10:
+                                shock = s1
+                            elif t < 20:
+                                shock = s2
+                            else:
+                                shock = 0
+                
+                            value *= (1 + base_ret + shock)
+                            path.append(value)
+                
+                        paths.append(path)
+                
+                # DataFrame
+                tree_df = pd.DataFrame(paths).T
+                tree_df.columns = [f"Pfad {i+1}" for i in range(num_paths)]
+                tree_df["Tag"] = range(horizon)
+                tree_long = tree_df.melt(id_vars="Tag", var_name="Pfad", value_name="Wert")
+                
+                # Plot
+                tree_chart = alt.Chart(tree_long).mark_line().encode(
+                    x=alt.X("Tag:Q", title="Tage"),
+                    y=alt.Y("Wert:Q", title="Portfolio-Wert"),
+                    color="Pfad:N",
+                    tooltip=["Tag", "Pfad", "Wert"]
+                ).properties(height=400)
+                
+                st.altair_chart(tree_chart, use_container_width=True)
+                
+                # Endwerte
+                end_values = tree_df.drop(columns="Tag").iloc[-1]
+                scenario_summary = pd.DataFrame({
+                    "Pfad": end_values.index,
+                    "Endwert": end_values.values
+                })
+                
+                st.table(scenario_summary)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Der Scenario-Tree zeigt, wie sich dein Portfolio unter verschiedenen Zukunftspfaden entwickelt.  
+                - Die ersten 10 Tage folgen Shock-Level 1, die nächsten 10 Tage Shock-Level 2.  
+                - Die Pfade divergieren sichtbar → zeigt Robustheit oder Fragilität.  
+                - Ein robustes Portfolio zeigt geringe Spreizung zwischen den Pfaden.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Tail-Dependence-Matrix (Copula-Modell) – Schritt 64
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Tail-Dependence-Matrix (Copula-Modell)")
+                
+                # Returns
+                returns = df
+                
+                # Quantil für Tail-Dependence
+                q = 0.05  # 5%-Crash-Bereich
+                
+                # Tail-Dependence Matrix berechnen
+                n = returns.shape[1]
+                tail_matrix = np.zeros((n, n))
+                
+                for i in range(n):
+                    for j in range(n):
+                        r_i = returns.iloc[:, i]
+                        r_j = returns.iloc[:, j]
+                
+                        # Crash-Indikatoren
+                        crash_i = r_i < r_i.quantile(q)
+                        crash_j = r_j < r_j.quantile(q)
+                
+                        # Tail-Dependence: P(j crash | i crash)
+                        if crash_i.sum() > 0:
+                            tail_matrix[i, j] = (crash_i & crash_j).sum() / crash_i.sum()
+                        else:
+                            tail_matrix[i, j] = 0
+                
+                tail_df = pd.DataFrame(tail_matrix, index=df.columns, columns=df.columns)
+                
+                st.table(tail_df)
+                
+                # Heatmap
+                tail_long = tail_df.reset_index().melt(id_vars="index", var_name="Asset2", value_name="TailDep")
+                tail_long.rename(columns={"index": "Asset1"}, inplace=True)
+                
+                tail_chart = alt.Chart(tail_long).mark_rect().encode(
+                    x=alt.X("Asset1:N", title="Asset 1"),
+                    y=alt.Y("Asset2:N", title="Asset 2"),
+                    color=alt.Color("TailDep:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["Asset1", "Asset2", "TailDep"]
+                ).properties(height=400)
+                
+                st.altair_chart(tail_chart, use_container_width=True)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Die Tail-Dependence-Matrix zeigt, wie stark Assets gemeinsam in Crash-Phasen fallen.  
+                - Werte nahe **1.0** = Assets crashen fast immer gemeinsam → hohes Tail-Risiko.  
+                - Werte nahe **0.0** = Assets crashen unabhängig → starke Diversifikation.  
+                - Tail-Dependence ist viel aussagekräftiger als normale Korrelation,  
+                  weil sie Extremrisiken sichtbar macht.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Regime-Transition-Matrix (Markov-Modell) – Schritt 65
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Regime-Transition-Matrix (Markov-Modell)")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Rolling-Volatilität
+                rolling_vol = portfolio_returns_series.rolling(21).std() * np.sqrt(252)
+                
+                # Regime-Schwellen
+                low_vol_threshold = rolling_vol.quantile(0.33)
+                high_vol_threshold = rolling_vol.quantile(0.66)
+                
+                # Regime klassifizieren
+                regime = []
+                for v in rolling_vol:
+                    if np.isnan(v):
+                        regime.append("None")
+                    elif v < low_vol_threshold:
+                        regime.append("Low Vol")
+                    elif v < high_vol_threshold:
+                        regime.append("Mid Vol")
+                    else:
+                        regime.append("High Vol")
+                
+                regime_series = pd.Series(regime, index=rolling_vol.index)
+                regime_series = regime_series[regime_series != "None"]
+                
+                # Transition-Matrix berechnen
+                states = ["Low Vol", "Mid Vol", "High Vol"]
+                transition_matrix = pd.DataFrame(0, index=states, columns=states)
+                
+                for i in range(1, len(regime_series)):
+                    prev_state = regime_series.iloc[i-1]
+                    curr_state = regime_series.iloc[i]
+                    transition_matrix.loc[prev_state, curr_state] += 1
+                
+                # Normalisieren zu Wahrscheinlichkeiten
+                transition_matrix = transition_matrix.div(transition_matrix.sum(axis=1), axis=0)
+                
+                st.table(transition_matrix)
+                
+                # Heatmap
+                transition_long = transition_matrix.reset_index().melt(id_vars="index", var_name="To", value_name="Prob")
+                transition_long.rename(columns={"index": "From"}, inplace=True)
+                
+                transition_chart = alt.Chart(transition_long).mark_rect().encode(
+                    x=alt.X("From:N", title="Von Regime"),
+                    y=alt.Y("To:N", title="Zu Regime"),
+                    color=alt.Color("Prob:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["From", "To", "Prob"]
+                ).properties(height=400)
+                
+                st.altair_chart(transition_chart, use_container_width=True)
+                
+                # Expected Duration (1 / (1 - P(stay)))
+                expected_duration = {}
+                for s in states:
+                    stay_prob = transition_matrix.loc[s, s]
+                    if stay_prob < 1:
+                        expected_duration[s] = 1 / (1 - stay_prob)
+                    else:
+                        expected_duration[s] = np.inf
+                
+                duration_df = pd.DataFrame({
+                    "Regime": list(expected_duration.keys()),
+                    "Erwartete Dauer (Tage)": list(expected_duration.values())
+                })
+                
+                st.table(duration_df)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Die Transition-Matrix zeigt, wie wahrscheinlich ein Wechsel zwischen Volatilitätsregimen ist.  
+                - Hohe Werte auf der Diagonale = stabile Regime.  
+                - Hohe Off-Diagonal-Werte = instabile Marktphasen.  
+                - Die erwartete Regime-Dauer zeigt, wie lange ein Regime typischerweise anhält.  
+                - Ein robustes Portfolio performt in allen Regimen stabil und ist nicht abhängig von einem einzigen Zustand.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Crash-Probability-Estimator (EVT) – Schritt 66
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Crash-Probability-Estimator (Extreme Value Theory)")
+                
+                from scipy.stats import genpareto
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Negative Tail extrahieren
+                losses = -portfolio_returns_series  # Verluste positiv machen
+                threshold = losses.quantile(0.95)   # 95%-Schwelle → Top 5% Verluste
+                excess_losses = losses[losses > threshold] - threshold
+                
+                # EVT-Fit (Generalized Pareto Distribution)
+                shape, loc, scale = genpareto.fit(excess_losses)
+                
+                # Crash-Level definieren
+                crash_levels = [0.05, 0.10, 0.20]  # 5%, 10%, 20% Verlust
+                
+                crash_probs = []
+                for c in crash_levels:
+                    # P(Verlust > c)
+                    if c > threshold:
+                        prob = genpareto.sf(c - threshold, shape, loc=0, scale=scale) * (1 - 0.95)
+                    else:
+                        prob = (losses > c).mean()
+                    crash_probs.append(prob)
+                
+                # DataFrame
+                ev_df = pd.DataFrame({
+                    "Crash-Level": ["-5%", "-10%", "-20%"],
+                    "Crash-Wahrscheinlichkeit": crash_probs
+                })
+                
+                st.table(ev_df)
+                
+                # Chart
+                ev_chart = alt.Chart(ev_df).mark_bar().encode(
+                    x=alt.X("Crash-Level:N", title="Crash-Level"),
+                    y=alt.Y("Crash-Wahrscheinlichkeit:Q", title="Wahrscheinlichkeit"),
+                    color=alt.Color("Crash-Wahrscheinlichkeit:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["Crash-Level", "Crash-Wahrscheinlichkeit"]
+                ).properties(height=400)
+                
+                st.altair_chart(ev_chart, use_container_width=True)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - EVT modelliert die Extremwerte der Verlustverteilung.  
+                - Die Crash-Wahrscheinlichkeit zeigt, wie oft extreme Verluste auftreten können.  
+                - Werte über 5–10% sind typisch für „fat-tailed“ Portfolios.  
+                - Ein robustes Portfolio hat niedrige EVT-Crash-Wahrscheinlichkeiten.  
+                - EVT ist deutlich realistischer als Normalverteilung, da sie Extremrisiken korrekt abbildet.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Drawdown-Regime-Classifier (Machine Learning) – Schritt 67
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Drawdown-Regime-Classifier (Machine Learning)")
+                
+                from sklearn.ensemble import RandomForestClassifier
+                
+                # Portfolio-Renditen
+                rets = (df @ w).dropna()
+                
+                # Drawdown berechnen
+                cum = (1 + rets).cumprod()
+                running_max = cum.cummax()
+                drawdown = (cum - running_max) / running_max
+                
+                # Drawdown-Regime definieren
+                # 0 = normal, 1 = drawdown
+                regime_label = (drawdown < -0.05).astype(int)  # Drawdown > 5%
+                
+                # Feature Engineering
+                features = pd.DataFrame({
+                    "Return": rets,
+                    "Volatility": rets.rolling(10).std(),
+                    "Momentum": rets.rolling(5).mean(),
+                    "Autocorr": rets.rolling(10).apply(lambda x: x.autocorr(), raw=False),
+                    "TailRisk": rets.rolling(20).apply(lambda x: np.mean(x < x.quantile(0.1)), raw=False)
+                }).dropna()
+                
+                labels = regime_label.loc[features.index]
+                
+                # ML-Modell
+                clf = RandomForestClassifier(n_estimators=200, random_state=42)
+                clf.fit(features, labels)
+                
+                # Regime-Vorhersage
+                preds = clf.predict(features)
+                
+                pred_df = pd.DataFrame({
+                    "Tag": range(len(preds)),
+                    "Regime": preds
+                })
+                
+                # Heat-Timeline
+                pred_chart = alt.Chart(pred_df).mark_rect().encode(
+                    x=alt.X("Tag:Q", title="Tage"),
+                    y=alt.Y("Regime:N", title="Regime"),
+                    color=alt.Color("Regime:N", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["Tag", "Regime"]
+                ).properties(height=200)
+                
+                st.altair_chart(pred_chart, use_container_width=True)
+                
+                # Feature Importance
+                fi = pd.DataFrame({
+                    "Feature": features.columns,
+                    "Importance": clf.feature_importances_
+                }).sort_values("Importance", ascending=False)
+                
+                st.table(fi)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Der ML-Classifier erkennt Muster, die typischerweise vor Drawdowns auftreten.  
+                - Regime = 1 bedeutet: ML erkennt ein „Pre-Crash“- oder Drawdown-Regime.  
+                - Feature Importance zeigt, welche Faktoren Drawdowns am besten erklären.  
+                - Typische Vorboten: steigende Volatilität, negative Momentum-Cluster, Tail-Risiko.  
+                - Das Modul zeigt, wie früh dein Portfolio Warnsignale sendet.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Nonlinear-Beta-Surface – Schritt 68
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Nonlinear-Beta-Surface")
+                
+                # Portfolio- und Markt-Renditen
+                portfolio_ret = (df @ w).dropna()
+                
+                # Synthetischer Marktindex (Durchschnitt aller Assets)
+                market_ret = df.mean(axis=1).loc[portfolio_ret.index]
+                
+                # Marktbewegungs-Buckets definieren
+                buckets = np.linspace(market_ret.min(), market_ret.max(), 20)
+                
+                beta_values = []
+                bucket_centers = []
+                
+                for i in range(len(buckets)-1):
+                    low = buckets[i]
+                    high = buckets[i+1]
+                
+                    mask = (market_ret >= low) & (market_ret < high)
+                
+                    if mask.sum() > 5:
+                        # Beta = Cov / Var
+                        cov = np.cov(portfolio_ret[mask], market_ret[mask])[0,1]
+                        var = np.var(market_ret[mask])
+                        beta = cov / var if var > 0 else 0
+                    else:
+                        beta = np.nan
+                
+                    beta_values.append(beta)
+                    bucket_centers.append((low + high) / 2)
+                
+                beta_df = pd.DataFrame({
+                    "Marktbewegung": bucket_centers,
+                    "Beta": beta_values
+                })
+                
+                st.table(beta_df)
+                
+                # Beta-Kurve
+                beta_chart = alt.Chart(beta_df).mark_line(point=True).encode(
+                    x=alt.X("Marktbewegung:Q", title="Marktrendite-Bucket"),
+                    y=alt.Y("Beta:Q", title="Nichtlineares Beta"),
+                    tooltip=["Marktbewegung", "Beta"]
+                ).properties(height=400)
+                
+                st.altair_chart(beta_chart, use_container_width=True)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Die Nonlinear-Beta-Surface zeigt, wie sich dein Portfolio-Beta über verschiedene Marktbewegungen verändert.  
+                - **Downside-Beta** (linke Seite) ist besonders wichtig für Risikomanagement.  
+                - **Upside-Beta** (rechte Seite) zeigt, wie stark dein Portfolio von Rallys profitiert.  
+                - Ein robustes Portfolio hat **symmetrisches Beta** oder **niedriges Downside-Beta**.  
+                - Dieses Modul zeigt, ob dein Portfolio in Stressphasen überproportional fällt.  
+                """)
+
                 
 
                 # -------------------------------------------------
