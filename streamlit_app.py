@@ -63,9 +63,7 @@ def mean_variance_optimizer(returns_df, long_only=True, max_weight=0.3, min_weig
 tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "🔄 Rebalancing", "ℹ️ Über QAF"])
 
 # =========================================================
-# =========================================================
 # =======================  TAB 1  =========================
-# =========================================================
 # =========================================================
 with tab1:
 
@@ -137,12 +135,12 @@ with tab1:
         run_opt = st.button("Optimierung starten")
 
         # =====================================================
-        # ==========  HIER BEGINNT DER BLOOMBERG-BLOCK  =======
+        # ==========  BLOOMBERG-STYLE ERGEBNISBLOCK  ==========
         # =====================================================
         if run_opt:
 
             # -------------------------------------------------
-            # BLOOMBERG-STYLE HEADER
+            # HEADER
             # -------------------------------------------------
             st.markdown("<hr style='border:1px solid #222;'>", unsafe_allow_html=True)
             st.markdown("""
@@ -244,59 +242,6 @@ with tab1:
 
                     st.markdown("</div>", unsafe_allow_html=True)
 
-                # ---------------------------------------------------------
-# Efficient Frontier (Effizienzlinie)
-# ---------------------------------------------------------
-
-st.markdown("### ")
-st.subheader("Effizienzlinie (Efficient Frontier)")
-
-# Anzahl zufälliger Portfolios
-num_portfolios = 5000
-
-returns = df
-mean_returns = returns.mean() * 252
-cov_matrix = returns.cov() * 252
-num_assets = len(mean_returns)
-
-results = np.zeros((3, num_portfolios))
-
-for i in range(num_portfolios):
-    # zufällige Gewichte
-    weights_rand = np.random.random(num_assets)
-    weights_rand /= np.sum(weights_rand)
-
-    # Portfolio-Kennzahlen
-    portfolio_return = np.sum(mean_returns * weights_rand)
-    portfolio_vol = np.sqrt(weights_rand.T @ cov_matrix.values @ weights_rand)
-
-    results[0, i] = portfolio_vol
-    results[1, i] = portfolio_return
-    results[2, i] = 0  # Dummy für Chart
-
-# DataFrame für Frontier
-frontier_df = pd.DataFrame({
-    "Volatility": results[0],
-    "Return": results[1]
-})
-
-# Chart
-frontier_chart = alt.Chart(frontier_df).mark_circle(size=20, color="#555555").encode(
-    x=alt.X("Volatility", title="Volatilität"),
-    y=alt.Y("Return", title="Rendite"),
-    tooltip=["Volatility", "Return"]
-)
-
-optimized_point = alt.Chart(pd.DataFrame({
-    "Volatility": [port_vol],
-    "Return": [port_return]
-})).mark_circle(size=200, color="#3EA6FF").encode(
-    x="Volatility",
-    y="Return"
-)
-
-st.altair_chart(frontier_chart + optimized_point, use_container_width=True)
-
                 # -------------------------------------------------
                 # EXECUTIVE SUMMARY
                 # -------------------------------------------------
@@ -340,9 +285,7 @@ st.altair_chart(frontier_chart + optimized_point, use_container_width=True)
         st.info("Bitte zuerst eine Datei hochladen, um die Optimierung zu aktivieren.")
 
 # =========================================================
-# =========================================================
 # =======================  TAB 2  =========================
-# =========================================================
 # =========================================================
 with tab2:
 
@@ -381,9 +324,7 @@ with tab2:
         st.info("Bitte Datei hochladen und aktuelles Portfolio eingeben.")
 
 # =========================================================
-# =========================================================
 # =======================  TAB 3  =========================
-# =========================================================
 # =========================================================
 with tab3:
     st.subheader("Über QAF")
