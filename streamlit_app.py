@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import altair as alt
 
 def simple_optimizer(returns_df, target_return=0.08, long_only=True):
     """
@@ -91,6 +92,27 @@ weights = simple_optimizer(df, target_return, long_only)
 # Ergebnis anzeigen
 st.write("Berechnete Gewichte:")
 st.table(weights)
+# Chart vorbereiten
+chart_data = pd.DataFrame({
+    "Asset": weights.index,
+    "Weight": weights.values
+})
+
+st.subheader("Visualisierung der Gewichte")
+
+bar_chart = alt.Chart(chart_data).mark_bar().encode(
+    x="Asset",
+    y="Weight",
+    tooltip=["Asset", "Weight"]
+)
+
+st.altair_chart(bar_chart, use_container_width=True)
+
+# Kleine Zusammenfassung
+st.subheader("Zusammenfassung")
+st.write(f"Zielrendite: {target_return}")
+st.write(f"Long-Only: {long_only}")
+st.write("Optimierung erfolgreich durchgeführt.")
 
 # Erwartete Rendite (sehr einfache Schätzung)
 expected_return = float((df.mean() * 252).mean())
