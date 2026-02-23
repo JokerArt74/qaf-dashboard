@@ -84,6 +84,7 @@ tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "🔄 Rebalancing", "ℹ️ Über 
 
 with tab1:
 
+    
     with st.expander("ℹ️ Kurzanleitung für neue Nutzer"):
     st.write("""
     Willkommen im QAF Dashboard!
