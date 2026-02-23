@@ -43,7 +43,24 @@ if uploaded_file:
     run_opt = st.button("Optimierung starten")
 
     if run_opt:
-        st.warning("Die Optimierung wird später hier ausgeführt. Dies ist nur die Oberfläche.")
+        if run_opt:
+    st.success("Optimierung ausgeführt (Demo-Modus)")
+
+    # Fake-Ergebnis – später ersetzen wir das durch echte Optimierung
+    fake_weights = {
+        "AAPL": 0.25,
+        "MSFT": 0.25,
+        "GOOG": 0.20,
+        "AMZN": 0.20,
+        "TSLA": 0.10
+    }
+
+    st.subheader("Optimierungsergebnis (Demo)")
+    st.write("Dies ist ein Platzhalter. Später kommen hier echte Berechnungen hin.")
+
+    st.table(fake_weights)
+
+    st.info("Im nächsten Schritt ersetzen wir dieses Fake-Ergebnis durch echte Optimierung.")
 else:
     st.info("Bitte zuerst eine Datei hochladen, um die Optimierung zu aktivieren.")
 
