@@ -532,6 +532,42 @@ with tab1:
                 
                 st.altair_chart(hrp_chart, use_container_width=True)
 
+                # ---------------------------------------------------------
+                # Factor Exposure Chart – Schritt 30
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Factor Exposure Chart")
+                
+                # Faktoren berechnen (synthetische Proxies)
+                asset_vol = df.std() * np.sqrt(252)
+                asset_momentum = df.tail(21).mean() * 252  # letzter Monat annualisiert
+                asset_quality = (df.mean() * 252) / (df.std() * np.sqrt(252))  # Sharpe pro Asset
+                asset_value = 1 / (1 + asset_vol)  # inverse Volatilität als Value-Proxy
+                asset_size = weights  # Gewicht als Size-Proxy
+                
+                factor_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Value": asset_value.values,
+                    "Momentum": asset_momentum.values,
+                    "Volatility": asset_vol.values,
+                    "Quality": asset_quality.values,
+                    "Size": asset_size.values
+                })
+                
+                # Melt für Chart
+                factor_long = factor_df.melt(id_vars="Asset", var_name="Factor", value_name="Exposure")
+                
+                # Chart
+                factor_chart = alt.Chart(factor_long).mark_bar().encode(
+                    x=alt.X("Asset:O", title="Asset"),
+                    y=alt.Y("Exposure:Q", title="Exposure"),
+                    color="Factor:N",
+                    tooltip=["Asset", "Factor", "Exposure"]
+                ).properties(height=400)
+                
+                st.altair_chart(factor_chart, use_container_width=True)
+
                 # -------------------------------------------------
                 # EXECUTIVE SUMMARY
                 # -------------------------------------------------
