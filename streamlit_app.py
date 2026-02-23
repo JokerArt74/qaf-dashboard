@@ -371,28 +371,166 @@ with tab1:
                 
                 st.altair_chart(corr_chart, use_container_width=True)
                 # ---------------------------------------------------------
-                # Correlation Heatmap – Schritt 26
+                # Risk-Parity-Portfolio – Schritt 27
                 # ---------------------------------------------------------
                 
                 st.markdown("### ")
-                st.subheader("Korrelationen zwischen Assets")
+                st.subheader("Risk-Parity-Portfolio")
                 
-                # Korrelationen berechnen
-                corr = df.corr()
+                # Kovarianzmatrix
+                cov_matrix = cov.values
+                n_assets = len(weights)
                 
-                # Für Heatmap in lange Form bringen
-                corr_long = corr.reset_index().melt(id_vars="index")
-                corr_long.columns = ["Asset1", "Asset2", "Correlation"]
+                # Startwerte: gleiche Gewichte
+                rp_weights = np.ones(n_assets) / n_assets
                 
-                # Heatmap
-                corr_chart = alt.Chart(corr_long).mark_rect().encode(
-                    x=alt.X("Asset1:O", title="Asset 1"),
-                    y=alt.Y("Asset2:O", title="Asset 2"),
-                    color=alt.Color("Correlation:Q", scale=alt.Scale(scheme="redblue"), title="Korrelation"),
-                    tooltip=["Asset1", "Asset2", "Correlation"]
+                # Risk-Parity-Optimierung (iterativ)
+                for _ in range(200):
+                    mcr = cov_matrix @ rp_weights
+                    rc = rp_weights * mcr
+                    target = np.mean(rc)
+                    rp_weights = rp_weights * (target / rc)
+                    rp_weights = rp_weights / rp_weights.sum()
+                
+                rp_series = pd.Series(rp_weights, index=weights.index)
+                
+                # Anzeige
+                st.markdown("**Risk-Parity-Gewichte:**")
+                st.table(rp_series)
+                
+                # Balkendiagramm
+                rp_chart = alt.Chart(pd.DataFrame({
+                    "Asset": rp_series.index,
+                    "Weight": rp_series.values
+                })).mark_bar(color="#FFAA00").encode(
+                    x="Asset",
+                    y="Weight",
+                    tooltip=["Asset", "Weight"]
                 )
                 
-                st.altair_chart(corr_chart, use_container_width=True)
+                st.altair_chart(rp_chart, use_container_width=True)
+
+                # ---------------------------------------------------------
+                # Minimum-Volatility-Portfolio – Schritt 28
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Minimum-Volatility-Portfolio")
+                
+                # Kovarianzmatrix
+                cov_matrix = cov.values
+                n_assets = len(weights)
+                
+                # Inverse der Kovarianzmatrix
+                inv_cov = np.linalg.inv(cov_matrix)
+                
+                # Minimum-Volatility-Gewichte
+                mv_weights = inv_cov @ np.ones(n_assets)
+                mv_weights = mv_weights / mv_weights.sum()
+                
+                mv_series = pd.Series(mv_weights, index=weights.index)
+                
+                # Anzeige
+                st.markdown("**Minimum-Volatility-Gewichte:**")
+                st.table(mv_series)
+                
+                # Balkendiagramm
+                mv_chart = alt.Chart(pd.DataFrame({
+                    "Asset": mv_series.index,
+                    "Weight": mv_series.values
+                })).mark_bar(color="#00CCFF").encode(
+                    x="Asset",
+                    y="Weight",
+                    tooltip=["Asset", "Weight"]
+                )
+                
+                st.altair_chart(mv_chart, use_container_width=True)
+
+                # ---------------------------------------------------------
+                # Hierarchical Risk Parity (HRP) – Schritt 29
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Hierarchical Risk Parity (HRP) Portfolio")
+                
+                # 1. Distanzmatrix aus Korrelationen
+                corr = df.corr()
+                dist = np.sqrt(0.5 * (1 - corr))
+                
+                # 2. Hierarchisches Clustering
+                from scipy.cluster.hierarchy import linkage, dendrogram
+                
+                link = linkage(dist, method="ward")
+                
+                # 3. Quasi-Diagonalization (Sortierung der Assets)
+                def get_quasi_diag(link):
+                    link = link.astype(int)
+                    sort_ix = pd.Series([link[-1, 0], link[-1, 1]])
+                    num_items = link[-1, 3]
+                    while sort_ix.max() >= num_items:
+                        sort_ix.index = range(0, sort_ix.shape[0] * 2, 2)
+                        df0 = sort_ix[sort_ix >= num_items]
+                        i = df0.index
+                        j = df0.values - num_items
+                        sort_ix[i] = link[j, 0]
+                        df1 = pd.Series(link[j, 1], index=i + 1)
+                        sort_ix = pd.concat([sort_ix, df1])
+                        sort_ix = sort_ix.sort_index()
+                    return sort_ix.tolist()
+                
+                sort_ix = get_quasi_diag(link)
+                sorted_assets = corr.index[sort_ix]
+                
+                # 4. Recursive Bisection (Gewichte berechnen)
+                def get_cluster_var(cov, cluster_items):
+                    cov_slice = cov.loc[cluster_items, cluster_items]
+                    w = np.ones(len(cov_slice)) / len(cov_slice)
+                    return float(w.T @ cov_slice.values @ w)
+                
+                def recursive_bisection(cov, sorted_assets):
+                    w = pd.Series(1, index=sorted_assets)
+                    clusters = [sorted_assets]
+                
+                    while len(clusters) > 0:
+                        cluster = clusters.pop(0)
+                        if len(cluster) <= 1:
+                            continue
+                
+                        split = len(cluster) // 2
+                        c1 = cluster[:split]
+                        c2 = cluster[split:]
+                
+                        clusters.append(c1)
+                        clusters.append(c2)
+                
+                        var1 = get_cluster_var(cov, c1)
+                        var2 = get_cluster_var(cov, c2)
+                
+                        alpha1 = 1 - var1 / (var1 + var2)
+                        alpha2 = 1 - alpha1
+                
+                        w[c1] *= alpha1
+                        w[c2] *= alpha2
+                
+                    return w / w.sum()
+                
+                hrp_weights = recursive_bisection(cov, sorted_assets)
+                
+                # Anzeige
+                st.markdown("**HRP-Gewichte:**")
+                st.table(hrp_weights)
+                
+                # Balkendiagramm
+                hrp_chart = alt.Chart(pd.DataFrame({
+                    "Asset": hrp_weights.index,
+                    "Weight": hrp_weights.values
+                })).mark_bar(color="#AAFF00").encode(
+                    x="Asset",
+                    y="Weight",
+                    tooltip=["Asset", "Weight"]
+                )
+                
+                st.altair_chart(hrp_chart, use_container_width=True)
 
                 # -------------------------------------------------
                 # EXECUTIVE SUMMARY
