@@ -4,11 +4,13 @@ import numpy as np
 import altair as alt
 
 # ---------------------------------------------------------
-# PAGE CONFIG + HEADER
+# PAGE CONFIG
 # ---------------------------------------------------------
-
 st.set_page_config(page_title="QAF Optimizer", layout="wide")
 
+# ---------------------------------------------------------
+# BRANDING HEADER
+# ---------------------------------------------------------
 col_logo, col_title = st.columns([1, 8])
 
 with col_logo:
@@ -27,44 +29,27 @@ with col_title:
 # ---------------------------------------------------------
 # OPTIMIZER FUNCTION
 # ---------------------------------------------------------
-
 def mean_variance_optimizer(returns_df, long_only=True, max_weight=0.3, min_weight=0.0):
-    """
-    Stabile Mean-Variance-Optimierung mit Constraints:
-    - Long-only (optional)
-    - Min/Max-Gewichte
-    """
-
-    # 1. Fehlende Werte bereinigen
     returns_df = returns_df.dropna(axis=1, thresh=len(returns_df) * 0.8)
     returns_df = returns_df.fillna(method="ffill").fillna(method="bfill")
 
     if returns_df.shape[1] == 0:
         return pd.Series([], dtype=float)
 
-    # 2. Kovarianzmatrix
     cov = returns_df.cov().values
     n = cov.shape[0]
-
-    # 3. Regularisierung
     cov += np.eye(n) * 1e-6
 
-    # 4. Inverse
     inv_cov = np.linalg.inv(cov)
-
-    # 5. Minimum-Variance
     ones = np.ones(n)
     weights = inv_cov @ ones
     weights = weights / weights.sum()
 
-    # 6. Long-only
     if long_only:
         weights = np.clip(weights, 0, None)
 
-    # 7. Min/Max-Gewichte
     weights = np.clip(weights, min_weight, max_weight)
 
-    # 8. Normalisieren
     if weights.sum() == 0:
         weights = np.ones(n) / n
     else:
@@ -75,27 +60,27 @@ def mean_variance_optimizer(returns_df, long_only=True, max_weight=0.3, min_weig
 # ---------------------------------------------------------
 # TABS
 # ---------------------------------------------------------
-
 tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "🔄 Rebalancing", "ℹ️ Über QAF"])
 
 # ---------------------------------------------------------
 # TAB 1 — DASHBOARD
 # ---------------------------------------------------------
-
 with tab1:
+
+    # Onboarding
     with st.expander("ℹ️ Kurzanleitung für neue Nutzer"):
-    st.write("""
-    Willkommen im QAF Dashboard!
+        st.write("""
+        Willkommen im QAF Dashboard!
 
-    **So funktioniert es:**
-    1. Lade eine CSV-Datei mit historischen Renditen hoch  
-    2. Stelle die Optimierungsparameter ein  
-    3. Starte die Optimierung  
-    4. Sieh dir Gewichte, Kennzahlen und Risiko/Rendite-Profil an  
-    5. Lade den Report herunter oder gehe zum Rebalancing-Tab  
+        **So funktioniert es:**
+        1. Lade eine CSV-Datei mit historischen Renditen hoch  
+        2. Stelle die Optimierungsparameter ein  
+        3. Starte die Optimierung  
+        4. Sieh dir Gewichte, Kennzahlen und Risiko/Rendite-Profil an  
+        5. Lade den Report herunter oder gehe zum Rebalancing-Tab  
 
-    Viel Erfolg beim Testen!
-    """)
+        Viel Erfolg beim Testen!
+        """)
 
     # -------------------------------
     # Upload Bereich
@@ -145,167 +130,4 @@ with tab1:
                     step=0.01
                 )
 
-        run_opt = st.button("Optimierung starten")
-
-        # -------------------------------
-        # Optimierungsergebnis
-        # -------------------------------
-        if run_opt:
-
-            st.markdown("<hr style='border:1px solid #222;'>", unsafe_allow_html=True)
-            st.markdown("### Optimierungsergebnis")
-
-            df = pd.read_csv(uploaded_file).dropna()
-
-            weights = mean_variance_optimizer(
-                df,
-                long_only=long_only,
-                max_weight=max_weight,
-                min_weight=min_weight
-            )
-
-            if len(weights) == 0:
-                st.error("Keine gültigen Assets nach Bereinigung. Bitte Daten prüfen.")
-            else:
-                mean_returns = df.mean() * 252
-                cov = df.cov() * 252
-
-                w = weights.values
-                port_return = float(mean_returns @ w)
-                port_vol = float(np.sqrt(w @ cov.values @ w))
-
-                # -------------------------------
-                # Ergebnisse in zwei Spalten
-                # -------------------------------
-                colA, colB = st.columns([1, 1])
-
-                with colA:
-                    st.write("Berechnete Gewichte:")
-                    st.table(weights)
-
-                with colB:
-                    st.write("Kennzahlen:")
-                    st.metric("Erwartete Rendite", f"{round(port_return,4)}")
-                    st.metric("Volatilität", f"{round(port_vol,4)}")
-
-                # -------------------------------
-                # Chart mit Abstand
-                # -------------------------------
-                st.markdown("### ")
-                st.subheader("Risiko/Rendite-Profil")
-
-                chart_data_rr = pd.DataFrame({
-                    "Name": ["Optimiertes Portfolio"],
-                    "Return": [port_return],
-                    "Volatility": [port_vol]
-                })
-
-                scatter = alt.Chart(chart_data_rr).mark_circle(size=120).encode(
-                    x=alt.X("Volatility", title="Volatilität"),
-                    y=alt.Y("Return", title="Erwartete Rendite"),
-                    tooltip=["Name", "Return", "Volatility"]
-                )
-
-                st.altair_chart(scatter, use_container_width=True)
-                st.markdown("---")
-
-                # -------------------------------
-                # Executive Summary (Dark Mode)
-                # -------------------------------
-                st.markdown("""
-                <div style="
-                    background-color:#111111;
-                    padding:20px;
-                    border-radius:10px;
-                    border:1px solid #222222;
-                ">
-                <h3 style="color:white;">Kurzfassung für Entscheider</h3>
-                <p style="color:#CCCCCC;">
-                <b>Zielrendite:</b> """ + str(target_return) + """<br>
-                <b>Long-Only:</b> """ + str(long_only) + """<br>
-                <b>Optimiertes Portfolio:</b><br>
-                Rendite <b>""" + str(round(port_return,4)) + """</b>, 
-                Volatilität <b>""" + str(round(port_vol,4)) + """</b>
-                </p>
-                </div>
-                """, unsafe_allow_html=True)
-                report_df = pd.DataFrame({
-    "Asset": weights.index,
-    "Weight": weights.values
-})
-
-csv = report_df.to_csv(index=False).encode("utf-8")
-
-st.download_button(
-    label="📥 Optimierungsreport herunterladen",
-    data=csv,
-    file_name="qaf_optimierungsreport.csv",
-    mime="text/csv"
-)
-
-    else:
-        st.info("Bitte zuerst eine Datei hochladen, um die Optimierung zu aktivieren.")
-
-# ---------------------------------------------------------
-# TAB 2 — REBALANCING
-# ---------------------------------------------------------
-
-with tab2:
-
-    st.subheader("Rebalancing – Kauf/Verkauf-Empfehlungen")
-
-    st.write("Gib dein aktuelles Portfolio ein, um Trades zu berechnen.")
-
-    current_portfolio_input = st.text_area(
-        "Format: Ticker: Gewicht, z. B. AAPL: 0.2, MSFT: 0.3",
-        value="",
-        height=100
-    )
-
-    if uploaded_file and current_portfolio_input.strip():
-
-        df = pd.read_csv(uploaded_file).dropna()
-
-        weights = mean_variance_optimizer(df)
-
-        try:
-            current_dict = {}
-            for line in current_portfolio_input.split(","):
-                if ":" in line:
-                    ticker, weight = line.split(":")
-                    current_dict[ticker.strip()] = float(weight.strip())
-
-            current_series = pd.Series(current_dict)
-            aligned_current = current_series.reindex(weights.index).fillna(0)
-
-            trades = weights - aligned_current
-
-            st.write("Positive Werte = Kaufen, Negative Werte = Verkaufen")
-            st.table(trades.rename("Trade"))
-
-        except Exception as e:
-            st.error(f"Fehler beim Einlesen des aktuellen Portfolios: {e}")
-
-    else:
-        st.info("Bitte Datei hochladen und aktuelles Portfolio eingeben.")
-
-# ---------------------------------------------------------
-# TAB 3 — ABOUT
-# ---------------------------------------------------------
-
-with tab3:
-    st.subheader("Über QAF")
-    st.write("""
-    QAF – Quantitative Allocation Framework  
-    Pilot-Version für professionelle Portfoliosteuerung.
-
-    Funktionen:
-    - Mean-Variance-Optimierung
-    - Constraints (Min/Max/Long-Only)
-    - Risiko/Rendite-Analyse
-    - Rebalancing-Empfehlungen
-    - Datenbereinigung & Stabilisierung
-
-    Kontakt:
-    michael@deinefirma.com
-    """)
+        run_opt
