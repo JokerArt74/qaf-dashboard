@@ -9,8 +9,20 @@ import altair as alt
 
 st.set_page_config(page_title="QAF Optimizer", layout="wide")
 
-st.title("QAF – Quantitative Allocation Framework")
-st.caption("Pilot-Version • Portfolio Optimizer & Rebalancing Engine")
+col_logo, col_title = st.columns([1, 8])
+
+with col_logo:
+    st.markdown("""
+    <div style="font-size:48px; line-height:1; color:#3EA6FF;">◆</div>
+    """, unsafe_allow_html=True)
+
+with col_title:
+    st.markdown("""
+    <h1 style="color:white; margin-bottom:0;">QAF – Quantitative Allocation Framework</h1>
+    <p style="color:#AAAAAA; margin-top:0;">
+        Pilot-Version • Portfolio Optimizer & Rebalancing Engine
+    </p>
+    """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
 # OPTIMIZER FUNCTION
@@ -142,23 +154,27 @@ with tab1:
                     st.metric("Erwartete Rendite", f"{round(port_return,4)}")
                     st.metric("Volatilität", f"{round(port_vol,4)}")
 
-                st.markdown("### ")
-                st.subheader("Risiko/Rendite-Profil")
+                # Abstand vor dem Chart
+st.markdown("### ")
 
-                chart_data_rr = pd.DataFrame({
-                    "Name": ["Optimiertes Portfolio"],
-                    "Return": [port_return],
-                    "Volatility": [port_vol]
-                })
+st.subheader("Risiko/Rendite-Profil")
 
-                scatter = alt.Chart(chart_data_rr).mark_circle(size=120).encode(
-                    x=alt.X("Volatility", title="Volatilität"),
-                    y=alt.Y("Return", title="Erwartete Rendite"),
-                    tooltip=["Name", "Return", "Volatility"]
-                )
+chart_data_rr = pd.DataFrame({
+    "Name": ["Optimiertes Portfolio"],
+    "Return": [port_return],
+    "Volatility": [port_vol]
+})
 
-                st.altair_chart(scatter, use_container_width=True)
-                st.markdown("---")
+scatter = alt.Chart(chart_data_rr).mark_circle(size=120).encode(
+    x=alt.X("Volatility", title="Volatilität"),
+    y=alt.Y("Return", title="Erwartete Rendite"),
+    tooltip=["Name", "Return", "Volatility"]
+)
+
+st.altair_chart(scatter, use_container_width=True)
+
+# Linie nach dem Chart
+st.markdown("---")
 
                 with st.container():
                     st.markdown("### Kurzfassung für Entscheider")
