@@ -3,41 +3,46 @@ import pandas as pd
 import numpy as np
 import altair as alt
 
-def mean_variance_optimizer(returns_df, long_only=True):
+def mean_variance_optimizer(returns_df, long_only=True, max_weight=0.3, min_weight=0.0):
     """
-    Stabile Mean-Variance-Optimierung:
-    - Entfernt Assets mit zu vielen fehlenden Werten
-    - Füllt kleine Lücken automatisch
-    - Regularisiert die Kovarianzmatrix
-    - Berechnet Minimum-Variance-Gewichte
+    Stabile Mean-Variance-Optimierung mit Constraints:
+    - Long-only (optional)
+    - Min/Max-Gewichte
     """
 
     # 1. Fehlende Werte bereinigen
     returns_df = returns_df.dropna(axis=1, thresh=len(returns_df) * 0.8)
     returns_df = returns_df.fillna(method="ffill").fillna(method="bfill")
 
-    # Falls nach Bereinigung nichts übrig bleibt → gleichgewichten
     if returns_df.shape[1] == 0:
         return pd.Series([], dtype=float)
 
-    # 2. Kovarianzmatrix berechnen
+    # 2. Kovarianzmatrix
     cov = returns_df.cov().values
     n = cov.shape[0]
 
-    # 3. Regularisierung (macht Matrix invertierbar)
+    # 3. Regularisierung
     cov += np.eye(n) * 1e-6
 
-    # 4. Inverse berechnen
+    # 4. Inverse
     inv_cov = np.linalg.inv(cov)
 
-    # 5. Minimum-Variance-Gewichte
+    # 5. Minimum-Variance
     ones = np.ones(n)
     weights = inv_cov @ ones
     weights = weights / weights.sum()
 
-    # 6. Long-only erzwingen
+    # 6. Long-only
     if long_only:
         weights = np.clip(weights, 0, None)
+
+    # 7. Min/Max-Gewichte
+    weights = np.clip(weights, min_weight, max_weight)
+
+    # 8. Normalisieren
+    if weights.sum() == 0:
+        weights = np.ones(n) / n
+    else:
         weights = weights / weights.sum()
 
     return pd.Series(weights.round(4), index=returns_df.columns)
@@ -81,6 +86,17 @@ if uploaded_file:
     )
 
     long_only = st.checkbox("Nur Long-Positionen erlauben", value=True)
+    max_weight = st.number_input(
+    "Maximalgewicht pro Asset (z. B. 0.3 für 30%)",
+    value=0.3,
+    step=0.05
+)
+
+min_weight = st.number_input(
+    "Minimalgewicht pro Asset (z. B. 0.0 für 0%)",
+    value=0.0,
+    step=0.01
+)
 
     run_opt = st.button("Optimierung starten")
 
@@ -102,7 +118,12 @@ st.subheader("Optimierungsergebnis")
 df = pd.read_csv(uploaded_file).dropna()
 
 # Optimierung ausführen
-weights = mean_variance_optimizer(df, long_only)
+weights = mean_variance_optimizer(
+    df,
+    long_only=long_only,
+    max_weight=max_weight,
+    min_weight=min_weight
+)
 
 if len(weights) == 0:
     st.error("Keine gültigen Assets nach Bereinigung. Bitte Daten prüfen.")
