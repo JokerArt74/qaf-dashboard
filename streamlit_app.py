@@ -96,8 +96,7 @@ if uploaded_file:
         "AMZN": 0.20,
         "TSLA": 0.10
     }
-
-   st.subheader("Optimierungsergebnis")
+st.subheader("Optimierungsergebnis")
 
 # Datei einlesen
 df = pd.read_csv(uploaded_file).dropna()
@@ -105,34 +104,44 @@ df = pd.read_csv(uploaded_file).dropna()
 # Optimierung ausführen
 weights = mean_variance_optimizer(df, long_only)
 
-# Ergebnis anzeigen
-st.write("Berechnete Gewichte:")
-st.table(weights)
-# Chart vorbereiten
-chart_data = pd.DataFrame({
-    "Asset": weights.index,
-    "Weight": weights.values
-})
+if len(weights) == 0:
+    st.error("Keine gültigen Assets nach Bereinigung. Bitte Daten prüfen.")
+else:
+    # Jahreskennzahlen
+    mean_returns = df.mean() * 252
+    cov = df.cov() * 252
 
-st.subheader("Visualisierung der Gewichte")
+    # Portfolio-Kennzahlen
+    w = weights.values
+    port_return = float(mean_returns @ w)
+    port_vol = float(np.sqrt(w @ cov.values @ w))
 
-bar_chart = alt.Chart(chart_data).mark_bar().encode(
-    x="Asset",
-    y="Weight",
-    tooltip=["Asset", "Weight"]
-)
+    st.write("Berechnete Gewichte:")
+    st.table(weights)
 
-st.altair_chart(bar_chart, use_container_width=True)
+    st.write("Geschätzte erwartete Jahresrendite:", round(port_return, 4))
+    st.write("Geschätzte erwartete Volatilität:", round(port_vol, 4))
 
-# Kleine Zusammenfassung
-st.subheader("Zusammenfassung")
-st.write(f"Zielrendite: {target_return}")
-st.write(f"Long-Only: {long_only}")
-st.write("Optimierung erfolgreich durchgeführt.")
+        st.subheader("Risiko/Rendite-Profil")
 
-# Erwartete Rendite (sehr einfache Schätzung)
-expected_return = float((df.mean() * 252).mean())
-st.write("Geschätzte erwartete Jahresrendite:", round(expected_return, 4))
+    chart_data_rr = pd.DataFrame({
+        "Name": ["Optimiertes Portfolio"],
+        "Return": [port_return],
+        "Volatility": [port_vol]
+    })
+
+    scatter = alt.Chart(chart_data_rr).mark_circle(size=120).encode(
+        x=alt.X("Volatility", title="Volatilität"),
+        y=alt.Y("Return", title="Erwartete Rendite"),
+        tooltip=["Name", "Return", "Volatility"]
+    )
+
+    st.altair_chart(scatter, use_container_width=True)
+
+    st.subheader("Kurzfassung für Entscheider")
+    st.write(f"- Zielrendite-Einstellung: {target_return}")
+    st.write(f"- Long-Only: {long_only}")
+    st.write(f"- Optimiertes Portfolio: Rendite {round(port_return,4)}, Volatilität {round(port_vol,4)}")
 
     st.info("Im nächsten Schritt ersetzen wir dieses Fake-Ergebnis durch echte Optimierung.")
 else:
