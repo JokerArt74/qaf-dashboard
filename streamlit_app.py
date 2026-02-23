@@ -78,6 +78,15 @@ st.subheader("Optimierungsbereich")
 
 if uploaded_file:
     st.write("Parameter für die Optimierung:")
+        st.subheader("Aktuelles Portfolio (optional)")
+
+    st.write("Wenn du hier dein aktuelles Portfolio eingibst, berechnen wir die notwendigen Trades.")
+
+    current_portfolio_input = st.text_area(
+        "Aktuelle Gewichte eingeben (Format: Ticker: Gewicht, z. B. AAPL: 0.2)",
+        value="",
+        height=100
+    )
 
     target_return = st.number_input(
         "Zielrendite (z. B. 0.08 für 8%)",
@@ -158,6 +167,32 @@ else:
     )
 
     st.altair_chart(scatter, use_container_width=True)
+        st.subheader("Rebalancing – Kauf/Verkauf-Empfehlungen")
+
+    if current_portfolio_input.strip():
+        try:
+            # Eingabe parsen
+            current_dict = {}
+            for line in current_portfolio_input.split(","):
+                if ":" in line:
+                    ticker, weight = line.split(":")
+                    current_dict[ticker.strip()] = float(weight.strip())
+
+            current_series = pd.Series(current_dict)
+
+            # Nur Assets berücksichtigen, die im optimierten Portfolio vorkommen
+            aligned_current = current_series.reindex(weights.index).fillna(0)
+
+            # Trades berechnen
+            trades = weights - aligned_current
+
+            st.write("Positive Werte = Kaufen, Negative Werte = Verkaufen")
+            st.table(trades.rename("Trade"))
+
+        except Exception as e:
+            st.error(f"Fehler beim Einlesen des aktuellen Portfolios: {e}")
+    else:
+        st.info("Kein aktuelles Portfolio eingegeben – Rebalancing wird übersprungen.")
 
     st.subheader("Kurzfassung für Entscheider")
     st.write(f"- Zielrendite-Einstellung: {target_return}")
