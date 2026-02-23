@@ -84,6 +84,20 @@ tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "🔄 Rebalancing", "ℹ️ Über 
 
 with tab1:
 
+    with st.expander("ℹ️ Kurzanleitung für neue Nutzer"):
+    st.write("""
+    Willkommen im QAF Dashboard!
+
+    **So funktioniert es:**
+    1. Lade eine CSV-Datei mit historischen Renditen hoch  
+    2. Stelle die Optimierungsparameter ein  
+    3. Starte die Optimierung  
+    4. Sieh dir Gewichte, Kennzahlen und Risiko/Rendite-Profil an  
+    5. Lade den Report herunter oder gehe zum Rebalancing-Tab  
+
+    Viel Erfolg beim Testen!
+    """)
+
     # -------------------------------
     # Upload Bereich
     # -------------------------------
@@ -216,6 +230,19 @@ with tab1:
                 </p>
                 </div>
                 """, unsafe_allow_html=True)
+                report_df = pd.DataFrame({
+    "Asset": weights.index,
+    "Weight": weights.values
+})
+
+csv = report_df.to_csv(index=False).encode("utf-8")
+
+st.download_button(
+    label="📥 Optimierungsreport herunterladen",
+    data=csv,
+    file_name="qaf_optimierungsreport.csv",
+    mime="text/csv"
+)
 
     else:
         st.info("Bitte zuerst eine Datei hochladen, um die Optimierung zu aktivieren.")
