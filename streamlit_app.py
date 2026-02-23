@@ -568,6 +568,561 @@ with tab1:
                 
                 st.altair_chart(factor_chart, use_container_width=True)
 
+                # ---------------------------------------------------------
+                # Monte-Carlo-Simulation – Schritt 31
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Monte-Carlo-Simulation (10.000 Szenarien)")
+                
+                # Anzahl der Simulationen
+                num_sim = 10000
+                
+                # Erwartungswerte und Kovarianzmatrix
+                mu = mean_returns.values
+                cov_matrix = cov.values
+                
+                # Simulation: multivariate Normalverteilung
+                simulated_returns = np.random.multivariate_normal(mu, cov_matrix, num_sim)
+                
+                # Portfolio-Returns berechnen
+                portfolio_sim_returns = simulated_returns @ w
+                
+                # In DataFrame packen
+                sim_df = pd.DataFrame({"Portfolio Return": portfolio_sim_returns})
+                
+                # Kennzahlen
+                sim_mean = sim_df["Portfolio Return"].mean()
+                sim_std = sim_df["Portfolio Return"].std()
+                sim_p5 = sim_df["Portfolio Return"].quantile(0.05)
+                sim_p95 = sim_df["Portfolio Return"].quantile(0.95)
+                
+                # Histogramm
+                hist_chart = alt.Chart(sim_df).mark_bar(color="#3EA6FF").encode(
+                    x=alt.X("Portfolio Return:Q", bin=alt.Bin(maxbins=50), title="Portfolio Return"),
+                    y=alt.Y("count()", title="Häufigkeit"),
+                    tooltip=["Portfolio Return"]
+                )
+                
+                st.altair_chart(hist_chart, use_container_width=True)
+                
+                # Kennzahlen anzeigen
+                st.markdown(f"""
+                **Erwartete Rendite (Simulation):** {round(sim_mean,4)}  
+                **Volatilität (Simulation):** {round(sim_std,4)}  
+                **5%-Quantil (Worst Case):** {round(sim_p5,4)}  
+                **95%-Quantil (Best Case):** {round(sim_p95,4)}  
+                """)
+
+                # ---------------------------------------------------------
+                # Drawdown-Analyse – Schritt 32
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Drawdown-Analyse")
+                
+                # Portfolio-Zeitreihe konstruieren
+                # Wir verwenden die historischen Renditen + optimierte Gewichte
+                portfolio_returns_series = df @ w
+                
+                # Kumulierte Performance
+                cum_returns = (1 + portfolio_returns_series).cumprod()
+                
+                # Running Maximum
+                running_max = cum_returns.cummax()
+                
+                # Drawdown
+                drawdown = (cum_returns - running_max) / running_max
+                
+                # Maximaler Drawdown
+                max_dd = drawdown.min()
+                
+                # Recovery Time (Tage bis neues Hoch)
+                recovery_time = (drawdown == 0).diff().fillna(0)
+                recovery_periods = recovery_time[recovery_time == 1].index.to_list()
+                
+                if len(recovery_periods) > 1:
+                    recovery_days = recovery_periods[-1] - recovery_periods[-2]
+                else:
+                    recovery_days = "Noch nicht vollständig erholt"
+                
+                # Drawdown-Chart
+                dd_df = pd.DataFrame({
+                    "Drawdown": drawdown.values,
+                    "Index": range(len(drawdown))
+                })
+                
+                dd_chart = alt.Chart(dd_df).mark_area(color="#FF4444").encode(
+                    x=alt.X("Index:Q", title="Zeit"),
+                    y=alt.Y("Drawdown:Q", title="Drawdown"),
+                    tooltip=["Drawdown"]
+                )
+                
+                st.altair_chart(dd_chart, use_container_width=True)
+                
+                # Kennzahlen anzeigen
+                st.markdown(f"""
+                **Maximaler Drawdown:** {round(max_dd,4)}  
+                **Recovery Time:** {recovery_days}  
+                """)
+
+                # ---------------------------------------------------------
+                # Rolling-Volatility-Chart – Schritt 33
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Rolling Volatility (gleitende Volatilität)")
+                
+                # Rolling Window (z. B. 21 Tage ≈ 1 Monat)
+                window = 21
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Rolling Volatility berechnen
+                rolling_vol = portfolio_returns_series.rolling(window).std() * np.sqrt(252)
+                
+                rolling_vol_df = pd.DataFrame({
+                    "Rolling Volatility": rolling_vol.values,
+                    "Index": range(len(rolling_vol))
+                })
+                
+                # Chart
+                rolling_vol_chart = alt.Chart(rolling_vol_df).mark_line(color="#FFA500", strokeWidth=2).encode(
+                    x=alt.X("Index:Q", title="Zeit"),
+                    y=alt.Y("Rolling Volatility:Q", title="Volatilität (annualisiert)"),
+                    tooltip=["Rolling Volatility"]
+                )
+                
+                st.altair_chart(rolling_vol_chart, use_container_width=True)
+                
+                # Kennzahlen
+                st.markdown(f"""
+                **Durchschnittliche Rolling-Volatilität:** {round(rolling_vol.mean(),4)}  
+                **Maximale Rolling-Volatilität:** {round(rolling_vol.max(),4)}  
+                **Minimale Rolling-Volatilität:** {round(rolling_vol.min(),4)}  
+                """)
+
+                # ---------------------------------------------------------
+                # Rolling-Sharpe-Chart – Schritt 34
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Rolling Sharpe Ratio")
+                
+                # Rolling Window (z. B. 21 Tage ≈ 1 Monat)
+                window = 21
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Rolling Sharpe Ratio
+                rolling_sharpe = (
+                    portfolio_returns_series.rolling(window).mean() * 252
+                ) / (
+                    portfolio_returns_series.rolling(window).std() * np.sqrt(252)
+                )
+                
+                rolling_sharpe_df = pd.DataFrame({
+                    "Rolling Sharpe": rolling_sharpe.values,
+                    "Index": range(len(rolling_sharpe))
+                })
+                
+                # Chart
+                rolling_sharpe_chart = alt.Chart(rolling_sharpe_df).mark_line(color="#33CC33", strokeWidth=2).encode(
+                    x=alt.X("Index:Q", title="Zeit"),
+                    y=alt.Y("Rolling Sharpe:Q", title="Sharpe Ratio"),
+                    tooltip=["Rolling Sharpe"]
+                )
+                
+                st.altair_chart(rolling_sharpe_chart, use_container_width=True)
+                
+                # Kennzahlen
+                st.markdown(f"""
+                **Durchschnittliche Rolling-Sharpe:** {round(rolling_sharpe.mean(),4)}  
+                **Maximale Rolling-Sharpe:** {round(rolling_sharpe.max(),4)}  
+                **Minimale Rolling-Sharpe:** {round(rolling_sharpe.min(),4)}  
+                """)
+
+                # ---------------------------------------------------------
+                # Value-at-Risk (VaR) Analyse – Schritt 35
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Value-at-Risk (VaR) Analyse")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Konfidenzniveau
+                confidence = 0.95
+                alpha = 1 - confidence
+                
+                # 1) Parametrischer VaR (Normalverteilung)
+                mu_p = portfolio_returns_series.mean()
+                sigma_p = portfolio_returns_series.std()
+                var_param = mu_p - sigma_p * np.sqrt(252) * 1.65  # 95% VaR
+                
+                # 2) Historischer VaR
+                var_hist = portfolio_returns_series.quantile(alpha)
+                
+                # 3) Monte-Carlo VaR (aus Schritt 31)
+                var_mc = np.quantile(portfolio_sim_returns, alpha)
+                
+                # Tabelle
+                var_df = pd.DataFrame({
+                    "Methode": ["Parametrisch (Normal)", "Historisch", "Monte-Carlo"],
+                    "VaR (95%)": [var_param, var_hist, var_mc]
+                })
+                
+                st.table(var_df)
+                
+                # Histogramm der historischen Returns + VaR-Linie
+                hist_var_chart = alt.Chart(pd.DataFrame({
+                    "Return": portfolio_returns_series
+                })).mark_bar(color="#8888FF").encode(
+                    x=alt.X("Return:Q", bin=alt.Bin(maxbins=50)),
+                    y="count()"
+                )
+                
+                var_line = alt.Chart(pd.DataFrame({
+                    "VaR": [var_hist]
+                })).mark_rule(color="red", strokeWidth=3).encode(
+                    x="VaR:Q"
+                )
+                
+                st.altair_chart(hist_var_chart + var_line, use_container_width=True)
+                
+                # Kennzahlen anzeigen
+                st.markdown(f"""
+                **Parametrischer VaR (95%):** {round(var_param,4)}  
+                **Historischer VaR (95%):** {round(var_hist,4)}  
+                **Monte-Carlo VaR (95%):** {round(var_mc,4)}  
+                """)
+
+                # ---------------------------------------------------------
+                # Expected Shortfall (CVaR) – Schritt 36
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Expected Shortfall (CVaR) Analyse")
+                
+                # Konfidenzniveau
+                confidence = 0.95
+                alpha = 1 - confidence
+                
+                # 1) Historischer CVaR
+                cvar_hist = portfolio_returns_series[portfolio_returns_series <= var_hist].mean()
+                
+                # 2) Parametrischer CVaR (Normalverteilung)
+                from scipy.stats import norm
+                cvar_param = mu_p - sigma_p * np.sqrt(252) * (norm.pdf(norm.ppf(alpha)) / alpha)
+                
+                # 3) Monte-Carlo CVaR
+                cvar_mc = portfolio_sim_returns[portfolio_sim_returns <= var_mc].mean()
+                
+                # Tabelle
+                cvar_df = pd.DataFrame({
+                    "Methode": ["Parametrisch (Normal)", "Historisch", "Monte-Carlo"],
+                    "CVaR (95%)": [cvar_param, cvar_hist, cvar_mc]
+                })
+                
+                st.table(cvar_df)
+                
+                # Histogramm + CVaR-Linie
+                hist_cvar_chart = alt.Chart(pd.DataFrame({
+                    "Return": portfolio_returns_series
+                })).mark_bar(color="#AAAAFF").encode(
+                    x=alt.X("Return:Q", bin=alt.Bin(maxbins=50)),
+                    y="count()"
+                )
+                
+                cvar_line = alt.Chart(pd.DataFrame({
+                    "CVaR": [cvar_hist]
+                })).mark_rule(color="red", strokeWidth=3).encode(
+                    x="CVaR:Q"
+                )
+                
+                st.altair_chart(hist_cvar_chart + cvar_line, use_container_width=True)
+                
+                # Kennzahlen anzeigen
+                st.markdown(f"""
+                **Parametrischer CVaR (95%):** {round(cvar_param,4)}  
+                **Historischer CVaR (95%):** {round(cvar_hist,4)}  
+                **Monte-Carlo CVaR (95%):** {round(cvar_mc,4)}  
+                """)
+
+                # ---------------------------------------------------------
+                # Beta-Analyse – Schritt 37
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Beta-Analyse (Portfolio vs. Benchmark)")
+                
+                # Benchmark-Auswahl
+                benchmark_choice = st.selectbox(
+                    "Benchmark auswählen",
+                    ["SPY (S&P 500)", "QQQ (Nasdaq 100)", "EEM (Emerging Markets)", "EFA (Developed Markets ex-US)"]
+                )
+                
+                # Benchmark-Daten simulieren (Proxy)
+                # In einer echten Version würdest du hier echte Benchmark-Daten laden
+                np.random.seed(42)
+                benchmark_returns = pd.Series(
+                    np.random.normal(0.0005, 0.01, len(df)),
+                    name="Benchmark"
+                )
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Beta-Berechnung
+                cov_pb = np.cov(portfolio_returns_series, benchmark_returns)[0][1]
+                var_b = benchmark_returns.var()
+                beta = cov_pb / var_b
+                
+                # Alpha-Berechnung (CAPM)
+                risk_free_rate = 0.02
+                benchmark_mean = benchmark_returns.mean() * 252
+                portfolio_mean = portfolio_returns_series.mean() * 252
+                
+                alpha = portfolio_mean - (risk_free_rate + beta * (benchmark_mean - risk_free_rate))
+                
+                # Tabelle
+                beta_df = pd.DataFrame({
+                    "Kennzahl": ["Beta", "Alpha (annualisiert)", "Benchmark-Rendite", "Portfolio-Rendite"],
+                    "Wert": [beta, alpha, benchmark_mean, portfolio_mean]
+                })
+                
+                st.table(beta_df)
+                
+                # Scatterplot: Portfolio vs. Benchmark
+                beta_chart_df = pd.DataFrame({
+                    "Portfolio": portfolio_returns_series,
+                    "Benchmark": benchmark_returns
+                })
+                
+                beta_chart = alt.Chart(beta_chart_df).mark_circle(size=40, color="#33AAFF").encode(
+                    x=alt.X("Benchmark:Q", title="Benchmark Return"),
+                    y=alt.Y("Portfolio:Q", title="Portfolio Return"),
+                    tooltip=["Portfolio", "Benchmark"]
+                )
+                
+                # Regressionslinie
+                reg_line = beta_chart.transform_regression(
+                    "Benchmark", "Portfolio"
+                ).mark_line(color="red")
+                
+                st.altair_chart(beta_chart + reg_line, use_container_width=True)
+                
+                # Kennzahlen anzeigen
+                st.markdown(f"""
+                **Beta:** {round(beta,4)}  
+                **Alpha:** {round(alpha,4)}  
+                **Interpretation:**  
+                - Beta > 1 → Portfolio ist aggressiver als der Markt  
+                - Beta < 1 → Portfolio ist defensiver  
+                - Alpha > 0 → Portfolio schlägt den Markt risikoadjustiert  
+                """)
+
+                # ---------------------------------------------------------
+                # Stress-Tests (Crash-Szenarien) – Schritt 38
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Stress-Tests (Crash-Szenarien)")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Stress-Szenarien definieren (synthetische Schocks)
+                stress_scenarios = {
+                    "Dotcom Crash (2000–2002)": -0.45,
+                    "Finanzkrise (2008)": -0.52,
+                    "Corona Crash (2020)": -0.34,
+                    "Zins-Schock / Inflation": -0.20,
+                    "Tech-Crash": -0.30,
+                    "Emerging Markets Crash": -0.28
+                }
+                
+                # Stress-Test Ergebnisse berechnen
+                stress_results = []
+                for name, shock in stress_scenarios.items():
+                    stressed_return = portfolio_returns_series.mean() * 252 + shock
+                    stress_results.append([name, shock, stressed_return])
+                
+                stress_df = pd.DataFrame(stress_results, columns=["Szenario", "Marktschock", "Portfolio-Auswirkung"])
+                
+                st.table(stress_df)
+                
+                # Balkendiagramm
+                stress_chart = alt.Chart(stress_df).mark_bar().encode(
+                    x=alt.X("Szenario:N", sort=None, title="Szenario"),
+                    y=alt.Y("Portfolio-Auswirkung:Q", title="Portfolio-Auswirkung"),
+                    color=alt.condition(
+                        alt.datum["Portfolio-Auswirkung"] < 0,
+                        alt.value("#FF4444"),
+                        alt.value("#44FF44")
+                    ),
+                    tooltip=["Szenario", "Marktschock", "Portfolio-Auswirkung"]
+                ).properties(height=400)
+                
+                st.altair_chart(stress_chart, use_container_width=True)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Die Stress-Tests zeigen, wie stark dein Portfolio in historischen oder hypothetischen Crashs fallen könnte.  
+                - Szenarien wie 2008 oder Dotcom führen zu besonders starken Verlusten.  
+                - Ein robustes Portfolio zeigt geringere Ausschläge in diesen Szenarien.  
+                """)
+
+                # ---------------------------------------------------------
+                # Tail-Risk-Chart – Schritt 39
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Tail-Risk-Analyse (Extreme Verluste)")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Unteres 5%-Segment extrahieren
+                tail_threshold = portfolio_returns_series.quantile(0.05)
+                tail_data = portfolio_returns_series[portfolio_returns_series <= tail_threshold]
+                
+                tail_df = pd.DataFrame({"Tail Returns": tail_data})
+                
+                # Histogramm der Tail-Returns
+                tail_chart = alt.Chart(tail_df).mark_bar(color="#FF3333").encode(
+                    x=alt.X("Tail Returns:Q", bin=alt.Bin(maxbins=40), title="Extreme Verluste"),
+                    y=alt.Y("count()", title="Häufigkeit"),
+                    tooltip=["Tail Returns"]
+                )
+                
+                st.altair_chart(tail_chart, use_container_width=True)
+                
+                # Kennzahlen
+                tail_mean = tail_data.mean()
+                tail_min = tail_data.min()
+                tail_std = tail_data.std()
+                
+                st.markdown(f"""
+                **Durchschnittlicher Tail-Verlust:** {round(tail_mean,4)}  
+                **Schlimmster Verlust im Tail:** {round(tail_min,4)}  
+                **Volatilität im Tail:** {round(tail_std,4)}  
+                
+                **Interpretation:**  
+                - Das Tail-Risk-Chart zeigt die extremsten 5% aller Verluste.  
+                - Je breiter und tiefer der Tail, desto höher das Crash-Risiko.  
+                - Ein „fetter Tail“ bedeutet, dass dein Portfolio anfällig für seltene, extreme Ereignisse ist.  
+                """)
+
+                # ---------------------------------------------------------
+                # Performance Attribution – Schritt 40
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Performance Attribution (Beitragsanalyse)")
+                
+                # Asset Returns (annualisiert)
+                asset_returns = df.mean() * 252
+                
+                # Contribution = Gewicht * Rendite
+                contribution = weights * asset_returns
+                
+                attrib_df = pd.DataFrame({
+                    "Asset": weights.index,
+                    "Gewicht": weights.values,
+                    "Rendite": asset_returns.values,
+                    "Beitrag": contribution.values
+                })
+                
+                # Sortieren nach Beitrag
+                attrib_df = attrib_df.sort_values("Beitrag", ascending=False)
+                
+                st.table(attrib_df)
+                
+                # Balkendiagramm
+                attrib_chart = alt.Chart(attrib_df).mark_bar().encode(
+                    x=alt.X("Asset:N", sort=None, title="Asset"),
+                    y=alt.Y("Beitrag:Q", title="Performance-Beitrag"),
+                    color=alt.condition(
+                        alt.datum["Beitrag"] < 0,
+                        alt.value("#FF4444"),   # Rot für negative Beiträge
+                        alt.value("#44FF44")    # Grün für positive Beiträge
+                    ),
+                    tooltip=["Asset", "Gewicht", "Rendite", "Beitrag"]
+                ).properties(height=400)
+                
+                st.altair_chart(attrib_chart, use_container_width=True)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Positive Balken zeigen Assets, die zur Gesamtperformance beigetragen haben.  
+                - Negative Balken zeigen Assets, die Performance gekostet haben.  
+                - Große Balken bedeuten hohe Wirkung — unabhängig vom Gewicht.  
+                - Diese Analyse ist essenziell für Reporting, Pitch-Decks und Investment-Kommunikation.  
+                """)
+
+                # ---------------------------------------------------------
+                # Portfolio-Stabilitätsindex – Schritt 41
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-Stabilitätsindex")
+                
+                # Portfolio-Renditen
+                portfolio_returns_series = df @ w
+                
+                # Komponenten des Stabilitätsindex
+                vol = portfolio_returns_series.std() * np.sqrt(252)
+                max_dd = ((1 + portfolio_returns_series).cumprod() /
+                          (1 + portfolio_returns_series).cumprod().cummax() - 1).min()
+                autocorr = portfolio_returns_series.autocorr()
+                rolling_sharpe = (
+                    portfolio_returns_series.rolling(21).mean() * 252
+                ) / (
+                    portfolio_returns_series.rolling(21).std() * np.sqrt(252)
+                )
+                sharpe_stability = 1 - rolling_sharpe.std()
+                
+                # Normalisierung
+                vol_score = 1 / (1 + vol)
+                dd_score = 1 / (1 + abs(max_dd))
+                autocorr_score = (autocorr + 1) / 2  # von -1..1 auf 0..1
+                sharpe_score = max(0, min(1, sharpe_stability))
+                
+                # Gesamtindex
+                stability_index = (
+                    0.35 * vol_score +
+                    0.35 * dd_score +
+                    0.15 * autocorr_score +
+                    0.15 * sharpe_score
+                )
+                
+                # Anzeige
+                st.metric("Portfolio-Stabilitätsindex", f"{round(stability_index,4)}")
+                
+                # Detailtabelle
+                stab_df = pd.DataFrame({
+                    "Komponente": ["Volatilität", "Max Drawdown", "Autokorrelation", "Sharpe-Stabilität"],
+                    "Score": [vol_score, dd_score, autocorr_score, sharpe_score]
+                })
+                
+                st.table(stab_df)
+                
+                # Interpretation
+                st.markdown(f"""
+                **Interpretation:**  
+                - Ein Wert nahe 1 bedeutet ein sehr stabiles, robustes Portfolio.  
+                - Ein Wert nahe 0 bedeutet ein instabiles, volatiles Portfolio.  
+                - Der Index kombiniert Risiko, Trendstabilität und Sharpe-Konsistenz.  
+                """)
+
+                
+
                 # -------------------------------------------------
                 # EXECUTIVE SUMMARY
                 # -------------------------------------------------
