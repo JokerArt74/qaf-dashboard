@@ -307,8 +307,48 @@ with tab1:
                 )
 
                 st.altair_chart(risk_chart, use_container_width=True)
+                # ---------------------------------------------------------
+                # Portfolio Snapshot Widget – Schritt 25
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio Snapshot – Auf einen Blick")
+                
+                # Kennzahlen berechnen
+                num_assets = len(weights)
+                avg_return = mean_returns.mean()
+                avg_vol = np.sqrt(np.mean(np.diag(cov.values)))
+                max_risk_contrib = risk_contribution.max()
+                diversification = 1 - max_risk_contrib  # je höher, desto besser
+                
+                # Snapshot-Container
+                st.markdown("""
+                <div style="
+                    background-color:#111111;
+                    padding:20px;
+                    border-radius:10px;
+                    border:1px solid #222222;
+                    margin-top:10px;
+                ">
+                <h3 style="color:white; margin-top:0;">Portfolio Snapshot</h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                colA, colB, colC = st.columns(3)
+                
+                with colA:
+                    st.metric("Anzahl Assets", num_assets)
+                    st.metric("Durchschn. Rendite", f"{round(avg_return,4)}")
+                
+                with colB:
+                    st.metric("Durchschn. Volatilität", f"{round(avg_vol,4)}")
+                    st.metric("Sharpe Ratio", f"{round((port_return - risk_free_rate)/port_vol,4)}")
+                
+                with colC:
+                    st.metric("Max. Risikobeitrag", f"{round(max_risk_contrib,4)}")
+                    st.metric("Diversifikation", f"{round(diversification,4)}")
 
-                                # -------------------------------------------------
+                # -------------------------------------------------
                 # EXECUTIVE SUMMARY
                 # -------------------------------------------------
                 st.markdown("""
