@@ -84,45 +84,63 @@ tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "🔄 Rebalancing", "ℹ️ Über 
 
 with tab1:
 
-    st.subheader("Upload Bereich")
-    uploaded_file = st.file_uploader("Portfolio-Datei hochladen (CSV)", type=["csv"])
+    # -------------------------------
+    # Upload Bereich
+    # -------------------------------
+    st.markdown("<hr style='border:1px solid #222;'>", unsafe_allow_html=True)
 
+    with st.container():
+        st.markdown("### Upload Bereich")
+        uploaded_file = st.file_uploader("Portfolio-Datei hochladen (CSV)", type=["csv"])
+
+        if uploaded_file:
+            st.success("Datei erfolgreich hochgeladen!")
+            df_preview = pd.read_csv(uploaded_file)
+            st.dataframe(df_preview.head())
+
+    # -------------------------------
+    # Parameter Bereich
+    # -------------------------------
     if uploaded_file:
-        st.success("Datei erfolgreich hochgeladen!")
-        df_preview = pd.read_csv(uploaded_file)
-        st.dataframe(df_preview.head())
 
-        st.subheader("Parameter für die Optimierung:")
+        st.markdown("<hr style='border:1px solid #222;'>", unsafe_allow_html=True)
 
-        col1, col2 = st.columns(2)
+        with st.container():
+            st.markdown("### Parameter für die Optimierung")
 
-        with col1:
-            target_return = st.number_input(
-                "Zielrendite (z. B. 0.08 für 8%)",
-                value=0.08,
-                step=0.01
-            )
+            col1, col2 = st.columns(2)
 
-            long_only = st.checkbox("Nur Long-Positionen erlauben", value=True)
+            with col1:
+                target_return = st.number_input(
+                    "Zielrendite (z. B. 0.08 für 8%)",
+                    value=0.08,
+                    step=0.01
+                )
 
-        with col2:
-            max_weight = st.number_input(
-                "Maximalgewicht pro Asset (z. B. 0.3 für 30%)",
-                value=0.3,
-                step=0.05
-            )
+                long_only = st.checkbox("Nur Long-Positionen erlauben", value=True)
 
-            min_weight = st.number_input(
-                "Minimalgewicht pro Asset (z. B. 0.0 für 0%)",
-                value=0.0,
-                step=0.01
-            )
+            with col2:
+                max_weight = st.number_input(
+                    "Maximalgewicht pro Asset (z. B. 0.3 für 30%)",
+                    value=0.3,
+                    step=0.05
+                )
+
+                min_weight = st.number_input(
+                    "Minimalgewicht pro Asset (z. B. 0.0 für 0%)",
+                    value=0.0,
+                    step=0.01
+                )
 
         run_opt = st.button("Optimierung starten")
 
+        # -------------------------------
+        # Optimierungsergebnis
+        # -------------------------------
         if run_opt:
 
-            st.subheader("Optimierungsergebnis")
+            st.markdown("<hr style='border:1px solid #222;'>", unsafe_allow_html=True)
+            st.markdown("### Optimierungsergebnis")
 
             df = pd.read_csv(uploaded_file).dropna()
 
@@ -143,6 +161,9 @@ with tab1:
                 port_return = float(mean_returns @ w)
                 port_vol = float(np.sqrt(w @ cov.values @ w))
 
+                # -------------------------------
+                # Ergebnisse in zwei Spalten
+                # -------------------------------
                 colA, colB = st.columns([1, 1])
 
                 with colA:
@@ -154,38 +175,47 @@ with tab1:
                     st.metric("Erwartete Rendite", f"{round(port_return,4)}")
                     st.metric("Volatilität", f"{round(port_vol,4)}")
 
-                # Abstand vor dem Chart
-st.markdown("### ")
+                # -------------------------------
+                # Chart mit Abstand
+                # -------------------------------
+                st.markdown("### ")
+                st.subheader("Risiko/Rendite-Profil")
 
-st.subheader("Risiko/Rendite-Profil")
+                chart_data_rr = pd.DataFrame({
+                    "Name": ["Optimiertes Portfolio"],
+                    "Return": [port_return],
+                    "Volatility": [port_vol]
+                })
 
-chart_data_rr = pd.DataFrame({
-    "Name": ["Optimiertes Portfolio"],
-    "Return": [port_return],
-    "Volatility": [port_vol]
-})
+                scatter = alt.Chart(chart_data_rr).mark_circle(size=120).encode(
+                    x=alt.X("Volatility", title="Volatilität"),
+                    y=alt.Y("Return", title="Erwartete Rendite"),
+                    tooltip=["Name", "Return", "Volatility"]
+                )
 
-scatter = alt.Chart(chart_data_rr).mark_circle(size=120).encode(
-    x=alt.X("Volatility", title="Volatilität"),
-    y=alt.Y("Return", title="Erwartete Rendite"),
-    tooltip=["Name", "Return", "Volatility"]
-)
+                st.altair_chart(scatter, use_container_width=True)
+                st.markdown("---")
 
-st.altair_chart(scatter, use_container_width=True)
-
-# Linie nach dem Chart
-st.markdown("---")
-
-                with st.container():
-                    st.markdown("### Kurzfassung für Entscheider")
-                    st.info(
-                        f"""
-                        **Zielrendite:** {target_return}  
-                        **Long-Only:** {long_only}  
-                        **Optimiertes Portfolio:**  
-                        Rendite **{round(port_return,4)}**, Volatilität **{round(port_vol,4)}**
-                        """
-                    )
+                # -------------------------------
+                # Executive Summary (Dark Mode)
+                # -------------------------------
+                st.markdown("""
+                <div style="
+                    background-color:#111111;
+                    padding:20px;
+                    border-radius:10px;
+                    border:1px solid #222222;
+                ">
+                <h3 style="color:white;">Kurzfassung für Entscheider</h3>
+                <p style="color:#CCCCCC;">
+                <b>Zielrendite:</b> """ + str(target_return) + """<br>
+                <b>Long-Only:</b> """ + str(long_only) + """<br>
+                <b>Optimiertes Portfolio:</b><br>
+                Rendite <b>""" + str(round(port_return,4)) + """</b>, 
+                Volatilität <b>""" + str(round(port_vol,4)) + """</b>
+                </p>
+                </div>
+                """, unsafe_allow_html=True)
 
     else:
         st.info("Bitte zuerst eine Datei hochladen, um die Optimierung zu aktivieren.")
