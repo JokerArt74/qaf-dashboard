@@ -78,7 +78,7 @@ st.subheader("Optimierungsbereich")
 
 if uploaded_file:
     st.write("Parameter für die Optimierung:")
-        st.subheader("Aktuelles Portfolio (optional)")
+    st.subheader("Aktuelles Portfolio (optional)")
 
     st.write("Wenn du hier dein aktuelles Portfolio eingibst, berechnen wir die notwendigen Trades.")
 
