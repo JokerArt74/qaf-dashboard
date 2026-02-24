@@ -1,0 +1,16 @@
+{
+  "trade_republic": {
+    "date": ["trade_date", "date"],
+    "time": ["time", "trade_time"],
+    "type": ["side", "type"],
+    "status": ["status"],
+    "isin": ["isin"],
+    "description": ["description", "name"],
+    "shares": ["quantity", "shares", "qty"],
+    "price": ["price", "unit_price"],
+    "amount": ["amount", "total"],
+    "fee": ["fee", "commission"],
+    "tax": ["tax"],
+    "currency": ["currency"]
+  }
+}
