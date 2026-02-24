@@ -91,8 +91,47 @@ with tab1:
 
     if uploaded_file:
         st.success("Datei erfolgreich hochgeladen!")
-        df_preview = pd.read_csv(uploaded_file)
-        st.dataframe(df_preview.head())
+        # ---------------------------------------------------------
+        # Robustes Einlesen der Datei (CSV, Excel, verschiedene Delimiter)
+        # ---------------------------------------------------------
+        
+        df_preview = None
+        
+        if uploaded_file is not None:
+            file_name = uploaded_file.name.lower()
+        
+            try:
+                # 1) Excel-Dateien (.xlsx, .xls)
+                if file_name.endswith(".xlsx") or file_name.endswith(".xls"):
+                    df_preview = pd.read_excel(uploaded_file)
+        
+                # 2) CSV-Dateien
+                elif file_name.endswith(".csv"):
+                    # Versuche verschiedene Delimiter
+                    try:
+                        df_preview = pd.read_csv(uploaded_file, sep=",")
+                    except:
+                        try:
+                            df_preview = pd.read_csv(uploaded_file, sep=";")
+                        except:
+                            try:
+                                df_preview = pd.read_csv(uploaded_file, sep="\t")
+                            except:
+                                st.error("CSV konnte nicht gelesen werden. Bitte prüfen Sie das Format.")
+                                st.stop()
+        
+                # 3) Unbekanntes Format
+                else:
+                    st.error("Unbekanntes Dateiformat. Bitte laden Sie eine CSV- oder Excel-Datei hoch.")
+                    st.stop()
+        
+            except Exception as e:
+                st.error(f"Fehler beim Einlesen der Datei: {e}")
+                st.stop()
+        
+            st.success("Datei erfolgreich eingelesen!")
+            st.write(df_preview.head())
+            st.dataframe(df_preview.head())
 
     # -----------------------------------------------------
     # PARAMETER BEREICH
