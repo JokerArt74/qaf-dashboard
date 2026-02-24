@@ -24,38 +24,30 @@ status = st.empty()
 if uploaded_file is not None:
     try:
         raw = uploaded_file.read()
-        df_raw, meta = load_and_clean(raw, mapping_templates=templates)
-        st.subheader("Parsing Meta")
-        st.write(meta)
-        st.subheader("Rohspalten")
-        st.write(df_raw.columns.tolist())
+        # Debug: detaillierte Matching-Info anzeigen
+from collections import defaultdict
 
-        broker, conf = meta.get("detected_broker"), meta.get("confidence", 0.0)
-        st.write("Auto Erkennung:", broker, f"confidence={conf:.2f}")
+def compute_match_details(df_cols, template):
+    df_cols_l = [c.lower() for c in df_cols]
+    details = defaultdict(list)
+    for target, candidates in template.items():
+        for cand in candidates:
+            for i, rc in enumerate(df_cols_l):
+                if cand in rc:
+                    details[target].append({"candidate": cand, "matched_column": df_cols[i]})
+    return dict(details)
 
-        if broker and conf >= 0.6 and broker in templates:
-            # build mapping: choose first matching candidate
-            raw_cols = [c.lower() for c in df_raw.columns]
-            mapping = {}
-            for target, candidates in templates[broker].items():
-                chosen = None
-                for cand in candidates:
-                    for i, rc in enumerate(raw_cols):
-                        if cand in rc:
-                            chosen = df_raw.columns[i]
-                            break
-                    if chosen:
-                        break
-                if chosen:
-                    mapping[target] = chosen
-            df_std = apply_mapping(df_raw, mapping)
-            st.success(f"Mapping für {broker} angewendet.")
-        else:
-            st.info("Automatische Erkennung unsicher. Bitte manuell zuordnen.")
-            mapping = {}
-            for target in STANDARD_COLUMNS:
-                mapping[target] = st.selectbox(f"Quelle für {target}", options=[""] + list(df_raw.columns), key=f"map_{target}")
-            df_std = apply_mapping(df_raw, mapping)
+# nach df_raw, meta erzeugt
+st.subheader("Debug Matching Details")
+if broker and broker in templates:
+    details = compute_match_details(df_raw.columns.tolist(), templates[broker])
+    st.write(details)
+else:
+    # zeige mögliche Matches für alle Templates (hilft zu sehen, warum ein anderer Broker gewinnt)
+    all_details = {}
+    for b, t in templates.items():
+        all_details[b] = compute_match_details(df_raw.columns.tolist(), t)
+    st.write(all_details)
 
         st.subheader("Standardisierte Spalten")
         st.write(df_std.columns.tolist())
