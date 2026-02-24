@@ -1,0 +1,16 @@
+{
+  "scalable": {
+    "date": ["date"],
+    "time": ["time"],
+    "type": ["side", "type"],
+    "status": ["status"],
+    "isin": ["isin"],
+    "description": ["description", "name"],
+    "shares": ["shares", "quantity"],
+    "price": ["price", "unit_price"],
+    "amount": ["amount", "total"],
+    "fee": ["fee", "commission"],
+    "tax": ["tax"],
+    "currency": ["currency"]
+  }
+}
