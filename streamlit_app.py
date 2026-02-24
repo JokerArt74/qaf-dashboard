@@ -92,7 +92,7 @@ with tab1:
     if uploaded_file:
         st.success("Datei erfolgreich hochgeladen!")
         # ---------------------------------------------------------
-        # Robustes Einlesen der Datei (CSV, Excel, verschiedene Delimiter)
+        # Ultra-robustes Einlesen der Datei (CSV, Excel, Auto-Detection)
         # ---------------------------------------------------------
         
         df_preview = None
@@ -103,22 +103,33 @@ with tab1:
             try:
                 # 1) Excel-Dateien (.xlsx, .xls)
                 if file_name.endswith(".xlsx") or file_name.endswith(".xls"):
-                    df_preview = pd.read_excel(uploaded_file)
+                    try:
+                        df_preview = pd.read_excel(uploaded_file)
+                    except Exception as e:
+                        st.error(f"Excel-Datei konnte nicht gelesen werden: {e}")
+                        st.stop()
         
                 # 2) CSV-Dateien
                 elif file_name.endswith(".csv"):
-                    # Versuche verschiedene Delimiter
+                    # Versuche automatische Delimiter-Erkennung
                     try:
-                        df_preview = pd.read_csv(uploaded_file, sep=",")
-                    except:
-                        try:
-                            df_preview = pd.read_csv(uploaded_file, sep=";")
-                        except:
-                            try:
-                                df_preview = pd.read_csv(uploaded_file, sep="\t")
-                            except:
-                                st.error("CSV konnte nicht gelesen werden. Bitte prüfen Sie das Format.")
-                                st.stop()
+                        # Erst Encoding erkennen
+                        raw = uploaded_file.read()
+                        uploaded_file.seek(0)
+        
+                        import chardet
+                        enc = chardet.detect(raw)["encoding"]
+        
+                        # Delimiter automatisch erkennen
+                        import csv
+                        sample = raw.decode(enc, errors="ignore").splitlines()[0]
+                        dialect = csv.Sniffer().sniff(sample)
+        
+                        df_preview = pd.read_csv(uploaded_file, encoding=enc, sep=dialect.delimiter)
+        
+                    except Exception as e:
+                        st.error(f"CSV konnte nicht gelesen werden: {e}")
+                        st.stop()
         
                 # 3) Unbekanntes Format
                 else:
