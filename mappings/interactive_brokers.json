@@ -1,0 +1,16 @@
+{
+  "interactive_brokers": {
+    "date": ["trade_date", "date"],
+    "time": ["trade_time", "time"],
+    "type": ["action", "type", "side"],
+    "status": ["status"],
+    "isin": ["isin"],
+    "description": ["description", "symbol", "name"],
+    "shares": ["quantity", "qty", "shares"],
+    "price": ["price", "unit_price"],
+    "amount": ["amount", "total"],
+    "fee": ["commission", "fee"],
+    "tax": ["tax"],
+    "currency": ["currency"]
+  }
+}
