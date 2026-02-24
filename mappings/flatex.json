@@ -1,0 +1,16 @@
+{
+  "flatex": {
+    "date": ["date", "datum"],
+    "time": ["time"],
+    "type": ["type", "side"],
+    "status": ["status"],
+    "isin": ["isin"],
+    "description": ["description", "name"],
+    "shares": ["quantity", "shares", "stueck"],
+    "price": ["price", "kurs"],
+    "amount": ["amount", "betrag", "total"],
+    "fee": ["fee", "commission", "gebuehr"],
+    "tax": ["tax", "steuer"],
+    "currency": ["currency", "waehrung"]
+  }
+}
