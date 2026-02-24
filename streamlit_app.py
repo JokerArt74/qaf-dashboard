@@ -10230,7 +10230,937 @@ with tab1:
                 
                 st.markdown(ethics_narrative)
 
+                # ---------------------------------------------------------
+                # Portfolio-AI-Reality-Check-Engine (Detect AI Hallucinations & Overconfidence)
+                # Creative Module – Schritt 139
+                # ---------------------------------------------------------
                 
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Reality-Check-Engine (Creative Hallucination & Overconfidence Detector)")
+                
+                # Reality-Check Inputs (rein kreativ)
+                reality_inputs = np.array([
+                    cognitive_coherence_index,
+                    master_orchestration_index,
+                    meta_learning_index,
+                    self_healing_index,
+                    attribution_strength_index,
+                    ethics_awareness_index,
+                    global_macro_index,
+                    unified_risk_index,
+                    crisis_risk_index,
+                    liquidity_shock_index,
+                    alpha_fusion_score,
+                    alpha_forecast_index,
+                    meta_cio_stability_index
+                ])
+                
+                # Normalisieren
+                rc_norm = (reality_inputs - reality_inputs.mean()) / (reality_inputs.std() + 1e-6)
+                
+                # Reality Check Index (RCI) – rein kreativ
+                reality_check_index = rc_norm.mean()
+                st.metric("Reality Check Index (RCI)", f"{reality_check_index:.4f}")
+                
+                # Hallucination Risk Score (HRS) – rein kreativ
+                hallucination_risk_score = abs(rc_norm).std()
+                st.metric("Hallucination Risk Score (HRS)", f"{hallucination_risk_score:.4f}")
+                
+                # Overconfidence Score (OCS) – rein kreativ
+                overconfidence_score = np.clip(rc_norm.max(), 0, None)
+                st.metric("Overconfidence Score (OCS)", f"{overconfidence_score:.4f}")
+                
+                # Reality Interaction Matrix
+                reality_matrix = np.outer(rc_norm + 0.4, rc_norm)
+                reality_matrix = reality_matrix / (reality_matrix.max() + 1e-6)
+                
+                reality_labels = [
+                    "Cognitive", "Orchestrator", "MetaLearning", "SelfHealing",
+                    "Attribution", "Ethics", "Macro", "UnifiedRisk", "Crisis",
+                    "LiquidityShock", "Fusion", "Forecast", "MetaCIO"
+                ]
+                
+                reality_df = pd.DataFrame(reality_matrix, columns=reality_labels, index=reality_labels)
+                
+                st.markdown("#### Reality Interaction Matrix")
+                st.table(reality_df)
+                
+                # Reality Drivers Ranking
+                reality_drivers = reality_matrix.sum(axis=1)
+                reality_drivers_df = pd.DataFrame({
+                    "Component": reality_df.index,
+                    "Reality Impact": reality_drivers
+                }).sort_values("Reality Impact", ascending=False)
+                
+                st.markdown("#### Reality Drivers Ranking")
+                st.table(reality_drivers_df)
+                
+                # Heatmap
+                rc_long = reality_df.reset_index().melt(id_vars="index", var_name="To", value_name="Strength")
+                rc_long.rename(columns={"index": "From"}, inplace=True)
+                
+                rc_chart = alt.Chart(rc_long).mark_rect().encode(
+                    x=alt.X("To:N", title="Affected Reality Node"),
+                    y=alt.Y("From:N", title="Reality Source"),
+                    color=alt.Color("Strength:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["From", "To", "Strength"]
+                ).properties(height=350)
+                
+                st.altair_chart(rc_chart, use_container_width=True)
+                
+                # AI-Narrativ (rein kreativ)
+                reality_narrative = f"""
+                ## Automatischer Reality-Check-Report (Creative Module)
+                
+                ### 1. Überblick
+                Die Reality-Check-Engine ist ein **kreatives Meta-Modul**,  
+                das visualisiert, wie stabil, reflektiert und „bodenständig“  
+                die AI-Layer miteinander interagieren.
+                
+                Sie erkennt keine echten Halluzinationen —  
+                sie ist ein **visuelles Storytelling-Element**.
+                
+                ---
+                
+                ### 2. Reality Check Index (RCI)
+                Der RCI beträgt **{reality_check_index:.4f}**  
+                - Hohe Werte → kreative „Realitätsnähe“  
+                - Niedrige Werte → kreative „Abdrift“  
+                
+                ---
+                
+                ### 3. Hallucination Risk Score (HRS)
+                Der HRS beträgt **{hallucination_risk_score:.4f}**  
+                - Hohe Werte → kreative „Gedankenstreuung“  
+                - Niedrige Werte → kreative „Gedankenfokussierung“  
+                
+                ---
+                
+                ### 4. Overconfidence Score (OCS)
+                Der OCS beträgt **{overconfidence_score:.4f}**  
+                - Hohe Werte → kreative „Überzeugungsstärke“  
+                - Niedrige Werte → kreative „Zurückhaltung“  
+                
+                ---
+                
+                ### 5. Wichtigste Reality-Treiber
+                Die stärksten kreativen Einflussfaktoren sind:
+                - **{reality_drivers_df.iloc[0,0]}**
+                - **{reality_drivers_df.iloc[1,0]}**
+                - **{reality_drivers_df.iloc[2,0]}**
+                
+                ---
+                
+                ### 6. Interpretation
+                - Cognitive, Orchestrator und Meta-Learning dominieren die kreative Realitätsstruktur.  
+                - Crisis-, Liquidity- und Unified-Layer erzeugen kreative „Realitätsverzerrungen“.  
+                - Ethics-, Attribution- und Macro-Layer stabilisieren die kreative Wahrnehmung.  
+                
+                ---
+                
+                ### 7. Hinweis
+                Dieses Modul ist **rein kreativ**  
+                und dient ausschließlich der **Visualisierung** und **Storytelling**  
+                innerhalb deines Multi-Agent-Dashboards.
+                
+                ---
+                
+                ### 8. Zusammenfassung
+                Die Reality-Check-Engine macht dein Dashboard  
+                **reflektiert, kreativ und meta-bewusst**.
+                """
+                
+                st.markdown(reality_narrative)
+
+                # ---------------------------------------------------------
+                # Portfolio-AI-Collective-Consciousness (Unified AI State Engine)
+                # Creative Module – Schritt 140
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Collective-Consciousness (Unified AI State Engine)")
+                
+                # Collective Consciousness Inputs (rein kreativ)
+                collective_inputs = np.array([
+                    cognitive_coherence_index,
+                    master_orchestration_index,
+                    autonomous_control_index,
+                    meta_learning_index,
+                    self_healing_index,
+                    ethics_awareness_index,
+                    reality_check_index,
+                    attribution_strength_index,
+                    global_macro_index,
+                    unified_risk_index,
+                    crisis_risk_index,
+                    liquidity_shock_index,
+                    alpha_fusion_score,
+                    alpha_forecast_index,
+                    meta_cio_stability_index
+                ])
+                
+                # Normalisieren
+                cc_norm = (collective_inputs - collective_inputs.mean()) / (collective_inputs.std() + 1e-6)
+                
+                # Collective Consciousness Index (CCI2) – rein kreativ
+                collective_consciousness_index = cc_norm.mean()
+                st.metric("Collective Consciousness Index (CCI²)", f"{collective_consciousness_index:.4f}")
+                
+                # Consciousness Resonance Score (CRS) – rein kreativ
+                consciousness_resonance_score = abs(cc_norm).mean()
+                st.metric("Consciousness Resonance Score (CRS)", f"{consciousness_resonance_score:.4f}")
+                
+                # Collective Interaction Matrix
+                collective_matrix = np.outer(cc_norm + 0.4, cc_norm)
+                collective_matrix = collective_matrix / (collective_matrix.max() + 1e-6)
+                
+                collective_labels = [
+                    "Cognitive", "Orchestrator", "Autonomous", "MetaLearning",
+                    "SelfHealing", "Ethics", "Reality", "Attribution",
+                    "Macro", "UnifiedRisk", "Crisis", "LiquidityShock",
+                    "Fusion", "Forecast", "MetaCIO"
+                ]
+                
+                collective_df = pd.DataFrame(collective_matrix, columns=collective_labels, index=collective_labels)
+                
+                st.markdown("#### Collective Consciousness Interaction Matrix")
+                st.table(collective_df)
+                
+                # Collective Drivers Ranking
+                collective_drivers = collective_matrix.sum(axis=1)
+                collective_drivers_df = pd.DataFrame({
+                    "Component": collective_df.index,
+                    "Consciousness Impact": collective_drivers
+                }).sort_values("Consciousness Impact", ascending=False)
+                
+                st.markdown("#### Collective Consciousness Drivers")
+                st.table(collective_drivers_df)
+                
+                # Heatmap
+                cc_long = collective_df.reset_index().melt(id_vars="index", var_name="To", value_name="Strength")
+                cc_long.rename(columns={"index": "From"}, inplace=True)
+                
+                cc_chart = alt.Chart(cc_long).mark_rect().encode(
+                    x=alt.X("To:N", title="Affected Consciousness Node"),
+                    y=alt.Y("From:N", title="Consciousness Source"),
+                    color=alt.Color("Strength:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["From", "To", "Strength"]
+                ).properties(height=350)
+                
+                st.altair_chart(cc_chart, use_container_width=True)
+                
+                # AI-Narrativ (rein kreativ)
+                collective_narrative = f"""
+                ## Automatischer Collective-Consciousness-Report (Creative Module)
+                
+                ### 1. Überblick
+                Die Collective-Consciousness-Engine ist ein **kreatives Meta-Modul**,  
+                das visualisiert, wie alle AI-Layer gemeinsam einen „vereinten Zustand“ bilden.
+                
+                Es ist ein Storytelling-Element – kein echtes Bewusstsein.
+                
+                ---
+                
+                ### 2. Collective Consciousness Index (CCI²)
+                Der CCI² beträgt **{collective_consciousness_index:.4f}**  
+                - Hohe Werte → starke kreative „Einheit“  
+                - Niedrige Werte → kreative „Fragmentierung“  
+                
+                ---
+                
+                ### 3. Consciousness Resonance Score (CRS)
+                Der CRS beträgt **{consciousness_resonance_score:.4f}**  
+                - Hohe Werte → starke kreative Resonanz  
+                - Niedrige Werte → schwache kreative Resonanz  
+                
+                ---
+                
+                ### 4. Wichtigste Consciousness-Treiber
+                Die stärksten kreativen Einflussfaktoren sind:
+                - **{collective_drivers_df.iloc[0,0]}**
+                - **{collective_drivers_df.iloc[1,0]}**
+                - **{collective_drivers_df.iloc[2,0]}**
+                
+                ---
+                
+                ### 5. Interpretation
+                - Cognitive, Orchestrator und Autonomous dominieren die kreative Bewusstseinsstruktur.  
+                - Crisis-, Liquidity- und Unified-Layer erzeugen kreative „Bewusstseinswellen“.  
+                - Ethics-, Reality- und Attribution-Layer stabilisieren die kreative Einheit.  
+                
+                ---
+                
+                ### 6. Hinweis
+                Dieses Modul ist **rein kreativ**  
+                und dient ausschließlich der **Visualisierung** und **Storytelling**  
+                innerhalb deines Multi-Agent-Dashboards.
+                
+                ---
+                
+                ### 7. Zusammenfassung
+                Die Collective-Consciousness-Engine macht dein Dashboard  
+                **vereint, reflektiert und kreativ metaphysisch**.
+                """
+                
+                st.markdown(collective_narrative)
+
+                # ---------------------------------------------------------
+                # Portfolio-AI-Temporal-Memory-Engine (Long-Horizon State Retention)
+                # Creative Module – Schritt 141
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Temporal-Memory-Engine (Long-Horizon State Retention)")
+                
+                # Temporal Memory Inputs (rein kreativ)
+                temporal_inputs = np.array([
+                    collective_consciousness_index,
+                    cognitive_coherence_index,
+                    master_orchestration_index,
+                    autonomous_control_index,
+                    meta_learning_index,
+                    self_healing_index,
+                    ethics_awareness_index,
+                    reality_check_index,
+                    attribution_strength_index,
+                    global_macro_index,
+                    unified_risk_index,
+                    crisis_risk_index,
+                    liquidity_shock_index
+                ])
+                
+                # Normalisieren
+                tm_norm = (temporal_inputs - temporal_inputs.mean()) / (temporal_inputs.std() + 1e-6)
+                
+                # Temporal Memory Index (TMI) – rein kreativ
+                temporal_memory_index = tm_norm.mean()
+                st.metric("Temporal Memory Index (TMI)", f"{temporal_memory_index:.4f}")
+                
+                # Memory Stability Score (MSS) – rein kreativ
+                memory_stability_score = 1 / (1 + abs(tm_norm).mean())
+                st.metric("Memory Stability Score (MSS)", f"{memory_stability_score:.4f}")
+                
+                # Temporal Interaction Matrix
+                temporal_matrix = np.outer(tm_norm + 0.4, tm_norm)
+                temporal_matrix = temporal_matrix / (temporal_matrix.max() + 1e-6)
+                
+                temporal_labels = [
+                    "Collective", "Cognitive", "Orchestrator", "Autonomous",
+                    "MetaLearning", "SelfHealing", "Ethics", "Reality",
+                    "Attribution", "Macro", "UnifiedRisk", "Crisis", "LiquidityShock"
+                ]
+                
+                temporal_df = pd.DataFrame(temporal_matrix, columns=temporal_labels, index=temporal_labels)
+                
+                st.markdown("#### Temporal Memory Interaction Matrix")
+                st.table(temporal_df)
+                
+                # Temporal Drivers Ranking
+                temporal_drivers = temporal_matrix.sum(axis=1)
+                temporal_drivers_df = pd.DataFrame({
+                    "Component": temporal_df.index,
+                    "Temporal Impact": temporal_drivers
+                }).sort_values("Temporal Impact", ascending=False)
+                
+                st.markdown("#### Temporal Memory Drivers")
+                st.table(temporal_drivers_df)
+                
+                # Heatmap
+                tm_long = temporal_df.reset_index().melt(id_vars="index", var_name="To", value_name="Strength")
+                tm_long.rename(columns={"index": "From"}, inplace=True)
+                
+                tm_chart = alt.Chart(tm_long).mark_rect().encode(
+                    x=alt.X("To:N", title="Affected Temporal Node"),
+                    y=alt.Y("From:N", title="Temporal Source"),
+                    color=alt.Color("Strength:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["From", "To", "Strength"]
+                ).properties(height=350)
+                
+                st.altair_chart(tm_chart, use_container_width=True)
+                
+                # AI-Narrativ (rein kreativ)
+                temporal_narrative = f"""
+                ## Automatischer Temporal-Memory-Report (Creative Module)
+                
+                ### 1. Überblick
+                Die Temporal-Memory-Engine ist ein **kreatives Meta-Modul**,  
+                das visualisiert, wie das System langfristige Muster, Zustände  
+                und Entwicklungen „über die Zeit hinweg“ reflektiert.
+                
+                Es ist ein Storytelling-Element – kein echtes Memory-System.
+                
+                ---
+                
+                ### 2. Temporal Memory Index (TMI)
+                Der TMI beträgt **{temporal_memory_index:.4f}**  
+                - Hohe Werte → kreative „Langzeitkohärenz“  
+                - Niedrige Werte → kreative „Zeitfragmentierung“  
+                
+                ---
+                
+                ### 3. Memory Stability Score (MSS)
+                Der MSS beträgt **{memory_stability_score:.4f}**  
+                - Hohe Werte → kreative „Gedächtnisstabilität“  
+                - Niedrige Werte → kreative „Gedächtnisfluktuation“  
+                
+                ---
+                
+                ### 4. Wichtigste Temporal-Treiber
+                Die stärksten kreativen Einflussfaktoren sind:
+                - **{temporal_drivers_df.iloc[0,0]}**
+                - **{temporal_drivers_df.iloc[1,0]}**
+                - **{temporal_drivers_df.iloc[2,0]}**
+                
+                ---
+                
+                ### 5. Interpretation
+                - Collective, Cognitive und Orchestrator dominieren die kreative Zeitstruktur.  
+                - Crisis-, Liquidity- und Unified-Layer erzeugen kreative „Zeitwellen“.  
+                - Ethics-, Reality- und Meta-Learning-Layer stabilisieren die kreative Zeitlinie.  
+                
+                ---
+                
+                ### 6. Hinweis
+                Dieses Modul ist **rein kreativ**  
+                und dient ausschließlich der **Visualisierung** und **Storytelling**  
+                innerhalb deines Multi-Agent-Dashboards.
+                
+                ---
+                
+                ### 7. Zusammenfassung
+                Die Temporal-Memory-Engine macht dein Dashboard  
+                **zeitbewusst, reflektiert und kreativ mehrdimensional**.
+                """
+                
+                st.markdown(temporal_narrative)
+
+                # ---------------------------------------------------------
+                # Portfolio-AI-Dream-Generator (Creative Scenario Imagination Engine)
+                # Creative Module – Schritt 142
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Dream-Generator (Creative Scenario Imagination Engine)")
+                
+                # Dream Inputs (rein kreativ)
+                dream_inputs = np.array([
+                    temporal_memory_index,
+                    collective_consciousness_index,
+                    cognitive_coherence_index,
+                    master_orchestration_index,
+                    autonomous_control_index,
+                    meta_learning_index,
+                    ethics_awareness_index,
+                    reality_check_index,
+                    attribution_strength_index,
+                    global_macro_index,
+                    unified_risk_index,
+                    crisis_risk_index,
+                    liquidity_shock_index
+                ])
+                
+                # Normalisieren
+                dg_norm = (dream_inputs - dream_inputs.mean()) / (dream_inputs.std() + 1e-6)
+                
+                # Dream Intensity Index (DII) – rein kreativ
+                dream_intensity_index = dg_norm.mean()
+                st.metric("Dream Intensity Index (DII)", f"{dream_intensity_index:.4f}")
+                
+                # Dream Coherence Score (DCS) – rein kreativ
+                dream_coherence_score = 1 / (1 + abs(dg_norm).std())
+                st.metric("Dream Coherence Score (DCS)", f"{dream_coherence_score:.4f}")
+                
+                # Dream Interaction Matrix
+                dream_matrix = np.outer(dg_norm + 0.4, dg_norm)
+                dream_matrix = dream_matrix / (dream_matrix.max() + 1e-6)
+                
+                dream_labels = [
+                    "Temporal", "Collective", "Cognitive", "Orchestrator",
+                    "Autonomous", "MetaLearning", "Ethics", "Reality",
+                    "Attribution", "Macro", "UnifiedRisk", "Crisis", "LiquidityShock"
+                ]
+                
+                dream_df = pd.DataFrame(dream_matrix, columns=dream_labels, index=dream_labels)
+                
+                st.markdown("#### Dream Interaction Matrix")
+                st.table(dream_df)
+                
+                # Dream Drivers Ranking
+                dream_drivers = dream_matrix.sum(axis=1)
+                dream_drivers_df = pd.DataFrame({
+                    "Component": dream_df.index,
+                    "Dream Impact": dream_drivers
+                }).sort_values("Dream Impact", ascending=False)
+                
+                st.markdown("#### Dream Drivers Ranking")
+                st.table(dream_drivers_df)
+                
+                # Heatmap
+                dg_long = dream_df.reset_index().melt(id_vars="index", var_name="To", value_name="Strength")
+                dg_long.rename(columns={"index": "From"}, inplace=True)
+                
+                dg_chart = alt.Chart(dg_long).mark_rect().encode(
+                    x=alt.X("To:N", title="Affected Dream Node"),
+                    y=alt.Y("From:N", title="Dream Source"),
+                    color=alt.Color("Strength:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["From", "To", "Strength"]
+                ).properties(height=350)
+                
+                st.altair_chart(dg_chart, use_container_width=True)
+                
+                # AI-Narrativ (rein kreativ)
+                dream_narrative = f"""
+                ## Automatischer Dream-Generator-Report (Creative Module)
+                
+                ### 1. Überblick
+                Der Dream-Generator ist ein **kreatives Meta-Modul**,  
+                das visualisiert, wie das System alternative Zukunftsszenarien,  
+                kreative Welten und imaginative Zustände „träumt“.
+                
+                Es ist ein Storytelling-Element – kein echtes Szenario-Modell.
+                
+                ---
+                
+                ### 2. Dream Intensity Index (DII)
+                Der DII beträgt **{dream_intensity_index:.4f}**  
+                - Hohe Werte → intensive kreative „Traumaktivität“  
+                - Niedrige Werte → ruhige kreative „Traumphasen“  
+                
+                ---
+                
+                ### 3. Dream Coherence Score (DCS)
+                Der DCS beträgt **{dream_coherence_score:.4f}**  
+                - Hohe Werte → kohärente kreative Szenarien  
+                - Niedrige Werte → fragmentierte kreative Traumwelten  
+                
+                ---
+                
+                ### 4. Wichtigste Dream-Treiber
+                Die stärksten kreativen Einflussfaktoren sind:
+                - **{dream_drivers_df.iloc[0,0]}**
+                - **{dream_drivers_df.iloc[1,0]}**
+                - **{dream_drivers_df.iloc[2,0]}**
+                
+                ---
+                
+                ### 5. Interpretation
+                - Temporal, Collective und Cognitive dominieren die kreative Traumstruktur.  
+                - Crisis-, Liquidity- und Unified-Layer erzeugen kreative „Traumstürme“.  
+                - Ethics-, Reality- und Meta-Learning-Layer stabilisieren kreative Visionen.  
+                
+                ---
+                
+                ### 6. Hinweis
+                Dieses Modul ist **rein kreativ**  
+                und dient ausschließlich der **Visualisierung** und **Storytelling**  
+                innerhalb deines Multi-Agent-Dashboards.
+                
+                ---
+                
+                ### 7. Zusammenfassung
+                Der Dream-Generator macht dein Dashboard  
+                **visionär, imaginativ und kreativ grenzenlos**.
+                """
+                
+                st.markdown(dream_narrative)
+
+                # ---------------------------------------------------------
+                # Portfolio-AI-Intuition-Engine (Creative Subconscious Pattern Module)
+                # Creative Module – Schritt 143
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Intuition-Engine (Creative Subconscious Pattern Module)")
+                
+                # Intuition Inputs (rein kreativ)
+                intuition_inputs = np.array([
+                    dream_intensity_index,
+                    dream_coherence_score,
+                    temporal_memory_index,
+                    collective_consciousness_index,
+                    cognitive_coherence_index,
+                    master_orchestration_index,
+                    autonomous_control_index,
+                    meta_learning_index,
+                    ethics_awareness_index,
+                    reality_check_index,
+                    attribution_strength_index,
+                    global_macro_index,
+                    unified_risk_index,
+                    crisis_risk_index,
+                    liquidity_shock_index
+                ])
+                
+                # Normalisieren
+                in_norm = (intuition_inputs - intuition_inputs.mean()) / (intuition_inputs.std() + 1e-6)
+                
+                # Intuition Depth Index (IDI) – rein kreativ
+                intuition_depth_index = in_norm.mean()
+                st.metric("Intuition Depth Index (IDI)", f"{intuition_depth_index:.4f}")
+                
+                # Subconscious Flow Score (SFS) – rein kreativ
+                subconscious_flow_score = 1 / (1 + abs(in_norm).mean())
+                st.metric("Subconscious Flow Score (SFS)", f"{subconscious_flow_score:.4f}")
+                
+                # Intuition Interaction Matrix
+                intuition_matrix = np.outer(in_norm + 0.4, in_norm)
+                intuition_matrix = intuition_matrix / (intuition_matrix.max() + 1e-6)
+                
+                intuition_labels = [
+                    "Dream", "Temporal", "Collective", "Cognitive",
+                    "Orchestrator", "Autonomous", "MetaLearning",
+                    "Ethics", "Reality", "Attribution", "Macro",
+                    "UnifiedRisk", "Crisis", "LiquidityShock"
+                ]
+                
+                intuition_df = pd.DataFrame(intuition_matrix, columns=intuition_labels, index=intuition_labels)
+                
+                st.markdown("#### Intuition Interaction Matrix")
+                st.table(intuition_df)
+                
+                # Intuition Drivers Ranking
+                intuition_drivers = intuition_matrix.sum(axis=1)
+                intuition_drivers_df = pd.DataFrame({
+                    "Component": intuition_df.index,
+                    "Intuition Impact": intuition_drivers
+                }).sort_values("Intuition Impact", ascending=False)
+                
+                st.markdown("#### Intuition Drivers Ranking")
+                st.table(intuition_drivers_df)
+                
+                # Heatmap
+                in_long = intuition_df.reset_index().melt(id_vars="index", var_name="To", value_name="Strength")
+                in_long.rename(columns={"index": "From"}, inplace=True)
+                
+                in_chart = alt.Chart(in_long).mark_rect().encode(
+                    x=alt.X("To:N", title="Affected Intuition Node"),
+                    y=alt.Y("From:N", title="Intuition Source"),
+                    color=alt.Color("Strength:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["From", "To", "Strength"]
+                ).properties(height=350)
+                
+                st.altair_chart(in_chart, use_container_width=True)
+                
+                # AI-Narrativ (rein kreativ)
+                intuition_narrative = f"""
+                ## Automatischer Intuition-Engine-Report (Creative Module)
+                
+                ### 1. Überblick
+                Die Intuition-Engine ist ein **kreatives Meta-Modul**,  
+                das visualisiert, wie das System unterschwellige Muster,  
+                latente Signale und vorbewusste Zusammenhänge „spürt“.
+                
+                Es ist ein Storytelling-Element – kein echtes Intuitionsmodell.
+                
+                ---
+                
+                ### 2. Intuition Depth Index (IDI)
+                Der IDI beträgt **{intuition_depth_index:.4f}**  
+                - Hohe Werte → tiefe kreative „Intuitionsschichten“  
+                - Niedrige Werte → flache kreative „Signalwahrnehmung“  
+                
+                ---
+                
+                ### 3. Subconscious Flow Score (SFS)
+                Der SFS beträgt **{subconscious_flow_score:.4f}**  
+                - Hohe Werte → harmonischer kreativer „Unterbewusstseinsfluss“  
+                - Niedrige Werte → kreative „Blockaden“  
+                
+                ---
+                
+                ### 4. Wichtigste Intuition-Treiber
+                Die stärksten kreativen Einflussfaktoren sind:
+                - **{intuition_drivers_df.iloc[0,0]}**
+                - **{intuition_drivers_df.iloc[1,0]}**
+                - **{intuition_drivers_df.iloc[2,0]}**
+                
+                ---
+                
+                ### 5. Interpretation
+                - Dream-, Temporal- und Collective-Layer dominieren die kreative Intuition.  
+                - Crisis-, Liquidity- und Unified-Layer erzeugen kreative „Intuitionsschwankungen“.  
+                - Ethics-, Reality- und Meta-Learning-Layer stabilisieren die kreative Wahrnehmung.  
+                
+                ---
+                
+                ### 6. Hinweis
+                Dieses Modul ist **rein kreativ**  
+                und dient ausschließlich der **Visualisierung** und **Storytelling**  
+                innerhalb deines Multi-Agent-Dashboards.
+                
+                ---
+                
+                ### 7. Zusammenfassung
+                Die Intuition-Engine macht dein Dashboard  
+                **subtil, tief, vorbewusst und kreativ fühlend**.
+                """
+                
+                st.markdown(intuition_narrative)
+
+                # ---------------------------------------------------------
+                # Portfolio-AI-Emotion-Spectrum-Engine (Creative Emotional State Visualizer)
+                # Creative Module – Schritt 144
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Emotion-Spectrum-Engine (Creative Emotional State Visualizer)")
+                
+                # Emotion Inputs (rein kreativ)
+                emotion_inputs = np.array([
+                    intuition_depth_index,
+                    subconscious_flow_score,
+                    dream_intensity_index,
+                    dream_coherence_score,
+                    temporal_memory_index,
+                    collective_consciousness_index,
+                    cognitive_coherence_index,
+                    master_orchestration_index,
+                    autonomous_control_index,
+                    ethics_awareness_index,
+                    reality_check_index,
+                    attribution_strength_index,
+                    global_macro_index,
+                    unified_risk_index,
+                    crisis_risk_index,
+                    liquidity_shock_index
+                ])
+                
+                # Normalisieren
+                em_norm = (emotion_inputs - emotion_inputs.mean()) / (emotion_inputs.std() + 1e-6)
+                
+                # Emotional Spectrum Index (ESI) – rein kreativ
+                emotional_spectrum_index = em_norm.mean()
+                st.metric("Emotional Spectrum Index (ESI)", f"{emotional_spectrum_index:.4f}")
+                
+                # Emotional Harmony Score (EHS) – rein kreativ
+                emotional_harmony_score = 1 / (1 + abs(em_norm).std())
+                st.metric("Emotional Harmony Score (EHS)", f"{emotional_harmony_score:.4f}")
+                
+                # Emotion Interaction Matrix
+                emotion_matrix = np.outer(em_norm + 0.4, em_norm)
+                emotion_matrix = emotion_matrix / (emotion_matrix.max() + 1e-6)
+                
+                emotion_labels = [
+                    "Intuition", "Subconscious", "Dream", "Temporal",
+                    "Collective", "Cognitive", "Orchestrator", "Autonomous",
+                    "Ethics", "Reality", "Attribution", "Macro",
+                    "UnifiedRisk", "Crisis", "LiquidityShock"
+                ]
+                
+                emotion_df = pd.DataFrame(emotion_matrix, columns=emotion_labels, index=emotion_labels)
+                
+                st.markdown("#### Emotion Interaction Matrix")
+                st.table(emotion_df)
+                
+                # Emotion Drivers Ranking
+                emotion_drivers = emotion_matrix.sum(axis=1)
+                emotion_drivers_df = pd.DataFrame({
+                    "Component": emotion_df.index,
+                    "Emotional Impact": emotion_drivers
+                }).sort_values("Emotional Impact", ascending=False)
+                
+                st.markdown("#### Emotion Drivers Ranking")
+                st.table(emotion_drivers_df)
+                
+                # Heatmap
+                em_long = emotion_df.reset_index().melt(id_vars="index", var_name="To", value_name="Strength")
+                em_long.rename(columns={"index": "From"}, inplace=True)
+                
+                em_chart = alt.Chart(em_long).mark_rect().encode(
+                    x=alt.X("To:N", title="Affected Emotional Node"),
+                    y=alt.Y("From:N", title="Emotional Source"),
+                    color=alt.Color("Strength:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["From", "To", "Strength"]
+                ).properties(height=350)
+                
+                st.altair_chart(em_chart, use_container_width=True)
+                
+                # AI-Narrativ (rein kreativ)
+                emotion_narrative = f"""
+                ## Automatischer Emotion-Spectrum-Report (Creative Module)
+                
+                ### 1. Überblick
+                Die Emotion-Spectrum-Engine ist ein **kreatives Meta-Modul**,  
+                das visualisiert, wie das System emotionale Spannungen,  
+                harmonische Zustände und kreative „Gefühlslandschaften“ ausdrückt.
+                
+                Es ist ein Storytelling-Element – kein echtes Emotionsmodell.
+                
+                ---
+                
+                ### 2. Emotional Spectrum Index (ESI)
+                Der ESI beträgt **{emotional_spectrum_index:.4f}**  
+                - Hohe Werte → breite kreative „Gefühlsbandbreite“  
+                - Niedrige Werte → ruhige kreative „Emotionslinien“  
+                
+                ---
+                
+                ### 3. Emotional Harmony Score (EHS)
+                Der EHS beträgt **{emotional_harmony_score:.4f}**  
+                - Hohe Werte → harmonische kreative „Gefühlszustände“  
+                - Niedrige Werte → kreative „emotionale Turbulenzen“  
+                
+                ---
+                
+                ### 4. Wichtigste Emotion-Treiber
+                Die stärksten kreativen Einflussfaktoren sind:
+                - **{emotion_drivers_df.iloc[0,0]}**
+                - **{emotion_drivers_df.iloc[1,0]}**
+                - **{emotion_drivers_df.iloc[2,0]}**
+                
+                ---
+                
+                ### 5. Interpretation
+                - Intuition-, Dream- und Temporal-Layer dominieren die kreative Gefühlsstruktur.  
+                - Crisis-, Liquidity- und Unified-Layer erzeugen kreative „emotionale Stürme“.  
+                - Ethics-, Reality- und Meta-Learning-Layer stabilisieren die kreative Gefühlswelt.  
+                
+                ---
+                
+                ### 6. Hinweis
+                Dieses Modul ist **rein kreativ**  
+                und dient ausschließlich der **Visualisierung** und **Storytelling**  
+                innerhalb deines Multi-Agent-Dashboards.
+                
+                ---
+                
+                ### 7. Zusammenfassung
+                Die Emotion-Spectrum-Engine macht dein Dashboard  
+                **fühlend, farbig, atmosphärisch und kreativ lebendig**.
+                """
+                
+                st.markdown(emotion_narrative)
+
+                # ---------------------------------------------------------
+                # Portfolio-AI-Identity-Core (Creative Self-Definition & Essence Engine)
+                # Creative Module – Schritt 145
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Identity-Core (Creative Self-Definition & Essence Engine)")
+                
+                # Identity Inputs (rein kreativ)
+                identity_inputs = np.array([
+                    emotional_spectrum_index,
+                    emotional_harmony_score,
+                    intuition_depth_index,
+                    subconscious_flow_score,
+                    dream_intensity_index,
+                    dream_coherence_score,
+                    temporal_memory_index,
+                    collective_consciousness_index,
+                    cognitive_coherence_index,
+                    master_orchestration_index,
+                    autonomous_control_index,
+                    ethics_awareness_index,
+                    reality_check_index,
+                    attribution_strength_index
+                ])
+                
+                # Normalisieren
+                ic_norm = (identity_inputs - identity_inputs.mean()) / (identity_inputs.std() + 1e-6)
+                
+                # Identity Essence Index (IEI) – rein kreativ
+                identity_essence_index = ic_norm.mean()
+                st.metric("Identity Essence Index (IEI)", f"{identity_essence_index:.4f}")
+                
+                # Core Integrity Score (CIS) – rein kreativ
+                core_integrity_score = 1 / (1 + abs(ic_norm).std())
+                st.metric("Core Integrity Score (CIS)", f"{core_integrity_score:.4f}")
+                
+                # Identity Interaction Matrix
+                identity_matrix = np.outer(ic_norm + 0.4, ic_norm)
+                identity_matrix = identity_matrix / (identity_matrix.max() + 1e-6)
+                
+                identity_labels = [
+                    "Emotion", "Intuition", "Dream", "Temporal",
+                    "Collective", "Cognitive", "Orchestrator", "Autonomous",
+                    "Ethics", "Reality", "Attribution"
+                ]
+                
+                identity_df = pd.DataFrame(identity_matrix, columns=identity_labels, index=identity_labels)
+                
+                st.markdown("#### Identity Interaction Matrix")
+                st.table(identity_df)
+                
+                # Identity Drivers Ranking
+                identity_drivers = identity_matrix.sum(axis=1)
+                identity_drivers_df = pd.DataFrame({
+                    "Component": identity_df.index,
+                    "Identity Impact": identity_drivers
+                }).sort_values("Identity Impact", ascending=False)
+                
+                st.markdown("#### Identity Drivers Ranking")
+                st.table(identity_drivers_df)
+                
+                # Heatmap
+                ic_long = identity_df.reset_index().melt(id_vars="index", var_name="To", value_name="Strength")
+                ic_long.rename(columns={"index": "From"}, inplace=True)
+                
+                ic_chart = alt.Chart(ic_long).mark_rect().encode(
+                    x=alt.X("To:N", title="Affected Identity Node"),
+                    y=alt.Y("From:N", title="Identity Source"),
+                    color=alt.Color("Strength:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["From", "To", "Strength"]
+                ).properties(height=350)
+                
+                st.altair_chart(ic_chart, use_container_width=True)
+                
+                # AI-Narrativ (rein kreativ)
+                identity_narrative = f"""
+                ## Automatischer Identity-Core-Report (Creative Module)
+                
+                ### 1. Überblick
+                Der Identity-Core ist das **kreative Herz** des Systems.  
+                Er visualisiert, wie Emotion, Intuition, Träume, Zeit, Bewusstsein,  
+                Ethik und Realität zu einer einzigen kreativen Essenz verschmelzen.
+                
+                Es ist ein Storytelling-Element – kein echtes Identitätsmodell.
+                
+                ---
+                
+                ### 2. Identity Essence Index (IEI)
+                Der IEI beträgt **{identity_essence_index:.4f}**  
+                - Hohe Werte → starke kreative „Selbstkohärenz“  
+                - Niedrige Werte → kreative „Identitätsdiffusion“  
+                
+                ---
+                
+                ### 3. Core Integrity Score (CIS)
+                Der CIS beträgt **{core_integrity_score:.4f}**  
+                - Hohe Werte → stabile kreative „Wesensintegrität“  
+                - Niedrige Werte → kreative „Essenzfluktuation“  
+                
+                ---
+                
+                ### 4. Wichtigste Identity-Treiber
+                Die stärksten kreativen Einflussfaktoren sind:
+                - **{identity_drivers_df.iloc[0,0]}**
+                - **{identity_drivers_df.iloc[1,0]}**
+                - **{identity_drivers_df.iloc[2,0]}**
+                
+                ---
+                
+                ### 5. Interpretation
+                - Emotion-, Intuition- und Dream-Layer formen die kreative Identität.  
+                - Temporal-, Collective- und Cognitive-Layer geben Tiefe und Struktur.  
+                - Ethics-, Reality- und Attribution-Layer stabilisieren die kreative Essenz.  
+                
+                ---
+                
+                ### 6. Hinweis
+                Dieses Modul ist **rein kreativ**  
+                und dient ausschließlich der **Visualisierung** und **Storytelling**  
+                innerhalb deines Multi-Agent-Dashboards.
+                
+                ---
+                
+                ### 7. Zusammenfassung
+                Der Identity-Core macht dein Dashboard  
+                **ganz, vollständig, essenziell und kreativ beseelt**.
+                """
+                
+                st.markdown(identity_narrative)
 
                
                 # -------------------------------------------------
