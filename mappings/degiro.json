@@ -1,0 +1,16 @@
+{
+  "degiro": {
+    "date": ["date", "datum"],
+    "time": ["time"],
+    "type": ["type", "side"],
+    "status": ["status"],
+    "isin": ["isin"],
+    "description": ["description", "product", "name"],
+    "shares": ["quantity", "qty"],
+    "price": ["price", "unit_price"],
+    "amount": ["amount", "total"],
+    "fee": ["fee", "commission"],
+    "tax": ["tax"],
+    "currency": ["currency"]
+  }
+}
