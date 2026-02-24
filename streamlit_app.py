@@ -92,10 +92,10 @@ with tab1:
     if uploaded_file:
         st.success("Datei erfolgreich hochgeladen!")
         # ---------------------------------------------------------
-        # Ultra-robustes Einlesen der Datei (CSV, Excel, Auto-Detection, ohne chardet)
+        # FINALER, ROBUSTER, FEHLERFREIER UPLOAD-BLOCK
         # ---------------------------------------------------------
         
-        df_preview = None
+        df = None
         
         if uploaded_file is not None:
             file_name = uploaded_file.name.lower()
@@ -103,11 +103,7 @@ with tab1:
             try:
                 # 1) Excel-Dateien (.xlsx, .xls)
                 if file_name.endswith(".xlsx") or file_name.endswith(".xls"):
-                    try:
-                        df_preview = pd.read_excel(uploaded_file)
-                    except Exception as e:
-                        st.error(f"Excel-Datei konnte nicht gelesen werden: {e}")
-                        st.stop()
+                    df = pd.read_excel(uploaded_file)
         
                 # 2) CSV-Dateien
                 elif file_name.endswith(".csv"):
@@ -117,35 +113,34 @@ with tab1:
         
                     # Versuche verschiedene Encodings
                     possible_encodings = ["utf-8", "latin1", "utf-16", "cp1252"]
+                    decoded_text = None
         
-                    df_preview = None
                     for enc in possible_encodings:
                         try:
-                            text = raw.decode(enc)
+                            decoded_text = raw.decode(enc)
                             break
                         except:
-                            text = None
+                            pass
         
-                    if text is None:
-                        st.error("Encoding konnte nicht erkannt werden.")
+                    if decoded_text is None:
+                        st.error("Die Datei konnte nicht dekodiert werden. Bitte UTF-8 oder Excel verwenden.")
                         st.stop()
         
                     # Delimiter automatisch erkennen
                     import csv
                     try:
-                        sample = text.splitlines()[0]
-                        dialect = csv.Sniffer().sniff(sample)
+                        first_line = decoded_text.splitlines()[0]
+                        dialect = csv.Sniffer().sniff(first_line)
                         delimiter = dialect.delimiter
                     except:
                         delimiter = ","  # Fallback
         
-                    # Jetzt endgültig einlesen
+                    # In DataFrame umwandeln
                     from io import StringIO
-                    df_preview = pd.read_csv(StringIO(text), sep=delimiter)
+                    df = pd.read_csv(StringIO(decoded_text), sep=delimiter)
         
-                # 3) Unbekanntes Format
                 else:
-                    st.error("Unbekanntes Dateiformat. Bitte laden Sie eine CSV- oder Excel-Datei hoch.")
+                    st.error("Bitte laden Sie eine CSV- oder Excel-Datei hoch.")
                     st.stop()
         
             except Exception as e:
@@ -153,7 +148,7 @@ with tab1:
                 st.stop()
         
             st.success("Datei erfolgreich eingelesen!")
-            st.write(df_preview.head())
+            st.write(df.head())
             st.dataframe(df_preview.head())
 
     # -----------------------------------------------------
