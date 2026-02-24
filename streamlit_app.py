@@ -92,7 +92,7 @@ with tab1:
     if uploaded_file:
         st.success("Datei erfolgreich hochgeladen!")
         # ---------------------------------------------------------
-        # Ultra-robustes Einlesen der Datei (CSV, Excel, Auto-Detection)
+        # Ultra-robustes Einlesen der Datei (CSV, Excel, Auto-Detection, ohne chardet)
         # ---------------------------------------------------------
         
         df_preview = None
@@ -111,25 +111,37 @@ with tab1:
         
                 # 2) CSV-Dateien
                 elif file_name.endswith(".csv"):
-                    # Versuche automatische Delimiter-Erkennung
-                    try:
-                        # Erst Encoding erkennen
-                        raw = uploaded_file.read()
-                        uploaded_file.seek(0)
         
-                        import chardet
-                        enc = chardet.detect(raw)["encoding"]
+                    # Datei als Bytes lesen
+                    raw = uploaded_file.read()
         
-                        # Delimiter automatisch erkennen
-                        import csv
-                        sample = raw.decode(enc, errors="ignore").splitlines()[0]
-                        dialect = csv.Sniffer().sniff(sample)
+                    # Versuche verschiedene Encodings
+                    possible_encodings = ["utf-8", "latin1", "utf-16", "cp1252"]
         
-                        df_preview = pd.read_csv(uploaded_file, encoding=enc, sep=dialect.delimiter)
+                    df_preview = None
+                    for enc in possible_encodings:
+                        try:
+                            text = raw.decode(enc)
+                            break
+                        except:
+                            text = None
         
-                    except Exception as e:
-                        st.error(f"CSV konnte nicht gelesen werden: {e}")
+                    if text is None:
+                        st.error("Encoding konnte nicht erkannt werden.")
                         st.stop()
+        
+                    # Delimiter automatisch erkennen
+                    import csv
+                    try:
+                        sample = text.splitlines()[0]
+                        dialect = csv.Sniffer().sniff(sample)
+                        delimiter = dialect.delimiter
+                    except:
+                        delimiter = ","  # Fallback
+        
+                    # Jetzt endgültig einlesen
+                    from io import StringIO
+                    df_preview = pd.read_csv(StringIO(text), sep=delimiter)
         
                 # 3) Unbekanntes Format
                 else:
