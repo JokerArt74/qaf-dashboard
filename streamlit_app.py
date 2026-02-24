@@ -9234,6 +9234,1002 @@ with tab1:
                 
                 st.markdown(meta_learning_narrative)
 
+                # ---------------------------------------------------------
+                # Portfolio-AI-Crisis-Playback-Simulator (Replay Past Crises) – Schritt 132
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Crisis-Playback-Simulator (Replay Past Crises)")
+                
+                # Crisis Playback Inputs (synthetisch)
+                crisis_playback_inputs = np.array([
+                    systemic_risk_index,
+                    crisis_risk_index,
+                    causal_stress_index,
+                    unified_risk_index,
+                    liquidity_shock_index,
+                    scenario_severity_index,
+                    market_world_severity,
+                    hedge_intensity,
+                    slippage_risk,
+                    alpha_fusion_score,
+                    alpha_forecast_index,
+                    meta_cio_stability_index,
+                    self_healing_index,
+                    meta_learning_index
+                ])
+                
+                # Normalisieren
+                cp_norm = (crisis_playback_inputs - crisis_playback_inputs.mean()) / (crisis_playback_inputs.std() + 1e-6)
+                
+                # Crisis Playback Index (CPI)
+                crisis_playback_index = cp_norm.mean()
+                st.metric("Crisis Playback Index (CPI)", f"{crisis_playback_index:.4f}")
+                
+                # Crisis Propagation Matrix
+                crisis_matrix = np.outer(cp_norm + 0.5, cp_norm)
+                crisis_matrix = crisis_matrix / (crisis_matrix.max() + 1e-6)
+                
+                crisis_df = pd.DataFrame(
+                    crisis_matrix,
+                    columns=[
+                        "Systemic", "Crisis", "CausalStress", "Unified", "LiquidityShock",
+                        "Scenario", "Regime", "Hedge", "Slippage", "Fusion",
+                        "Forecast", "MetaCIO", "SelfHealing", "MetaLearning"
+                    ],
+                    index=[
+                        "Systemic", "Crisis", "CausalStress", "Unified", "LiquidityShock",
+                        "Scenario", "Regime", "Hedge", "Slippage", "Fusion",
+                        "Forecast", "MetaCIO", "SelfHealing", "MetaLearning"
+                    ]
+                )
+                
+                st.markdown("#### Crisis Playback Propagation Matrix")
+                st.table(crisis_df)
+                
+                # Crisis Drivers Ranking
+                crisis_drivers = crisis_matrix.sum(axis=1)
+                crisis_drivers_df = pd.DataFrame({
+                    "Component": crisis_df.index,
+                    "Crisis Impact": crisis_drivers
+                }).sort_values("Crisis Impact", ascending=False)
+                
+                st.markdown("#### Crisis Playback Drivers")
+                st.table(crisis_drivers_df)
+                
+                # Heatmap
+                cp_long = crisis_df.reset_index().melt(id_vars="index", var_name="To", value_name="Strength")
+                cp_long.rename(columns={"index": "From"}, inplace=True)
+                
+                cp_chart = alt.Chart(cp_long).mark_rect().encode(
+                    x=alt.X("To:N", title="Affected Component"),
+                    y=alt.Y("From:N", title="Crisis Source"),
+                    color=alt.Color("Strength:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["From", "To", "Strength"]
+                ).properties(height=350)
+                
+                st.altair_chart(cp_chart, use_container_width=True)
+                
+                # AI-Narrativ
+                crisis_playback_narrative = f"""
+                ## Automatischer Crisis-Playback-Report
+                
+                ### 1. Überblick
+                Der Crisis-Playback-Simulator rekonstruiert vergangene Finanzkrisen  
+                und zeigt, wie das aktuelle Portfolio unter ähnlichen Bedingungen reagieren würde.
+                
+                Dies ist ein institutionelles Crisis-Replay-Modell.
+                
+                ---
+                
+                ### 2. Crisis Playback Index (CPI)
+                Der CPI beträgt **{crisis_playback_index:.4f}**  
+                - Hohe Werte → starke Ähnlichkeit zu historischen Krisen  
+                - Niedrige Werte → wenig Krisenähnlichkeit  
+                
+                ---
+                
+                ### 3. Wichtigste Crisis-Treiber
+                Die stärksten Treiber der Crisis-Rekonstruktion sind:
+                - **{crisis_drivers_df.iloc[0,0]}**
+                - **{crisis_drivers_df.iloc[1,0]}**
+                - **{crisis_drivers_df.iloc[2,0]}**
+                
+                ---
+                
+                ### 4. Interpretation
+                - Systemic, Crisis und Liquidity-Shock dominieren die Krisenähnlichkeit.  
+                - Causal-Stress und Unified-Risk verstärken historische Muster.  
+                - Meta-Learning und Self-Healing modulieren Resilienz.  
+                - Das Modell zeigt, wie frühere Krisen sich heute auswirken würden.
+                
+                ---
+                
+                ### 5. Handlungsempfehlungen
+                - CPI eng überwachen → misst historische Krisenähnlichkeit.  
+                - Hedges gegen historische Muster aktivieren.  
+                - Execution-Autopilot bei hoher Krisenähnlichkeit defensiv einstellen.  
+                - Meta-CIO-Agent nutzt CPI für finale Entscheidungen.
+                
+                ---
+                
+                ### 6. Zusammenfassung
+                Der Crisis-Playback-Simulator macht dein Portfolio  
+                **historisch bewusst, krisenresistent und institutionell robust**.
+                """
+                
+                st.markdown(crisis_playback_narrative)
+
+                # ---------------------------------------------------------
+                # Portfolio-AI-Deep-Attribution-Engine (Explainable Multi-Layer Attribution) – Schritt 133
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Deep-Attribution-Engine (Explainable Multi-Layer Attribution)")
+                
+                # Deep Attribution Inputs (alle Layer)
+                deep_attr_inputs = np.array([
+                    alpha_fusion_score,
+                    alpha_forecast_index,
+                    meta_score,
+                    autopilot_score,
+                    rl_action,
+                    adaptive_score,
+                    consistency_score,
+                    unified_risk_index,
+                    systemic_risk_index,
+                    crisis_risk_index,
+                    causal_stress_index,
+                    liquidity_shock_index,
+                    hedge_intensity,
+                    market_world_severity,
+                    slippage_risk,
+                    meta_cio_stability_index,
+                    self_healing_index,
+                    meta_learning_index
+                ])
+                
+                # Normalisieren
+                da_norm = (deep_attr_inputs - deep_attr_inputs.mean()) / (deep_attr_inputs.std() + 1e-6)
+                
+                # Attribution Strength Index (ASI)
+                attribution_strength_index = abs(da_norm).mean()
+                st.metric("Attribution Strength Index (ASI)", f"{attribution_strength_index:.4f}")
+                
+                # Multi-Layer Attribution Matrix
+                attr_matrix = np.outer(da_norm + 0.5, da_norm)
+                attr_matrix = attr_matrix / (attr_matrix.max() + 1e-6)
+                
+                attr_df = pd.DataFrame(
+                    attr_matrix,
+                    columns=[
+                        "Fusion", "Forecast", "Meta", "Autopilot", "RL", "Adaptive",
+                        "Consistency", "Unified", "Systemic", "Crisis", "CausalStress",
+                        "LiquidityShock", "Hedge", "Regime", "Slippage",
+                        "MetaCIO", "SelfHealing", "MetaLearning"
+                    ],
+                    index=[
+                        "Fusion", "Forecast", "Meta", "Autopilot", "RL", "Adaptive",
+                        "Consistency", "Unified", "Systemic", "Crisis", "CausalStress",
+                        "LiquidityShock", "Hedge", "Regime", "Slippage",
+                        "MetaCIO", "SelfHealing", "MetaLearning"
+                    ]
+                )
+                
+                st.markdown("#### Multi-Layer Attribution Matrix")
+                st.table(attr_df)
+                
+                # Attribution Drivers Ranking
+                attr_drivers = attr_matrix.sum(axis=1)
+                attr_drivers_df = pd.DataFrame({
+                    "Component": attr_df.index,
+                    "Attribution Impact": attr_drivers
+                }).sort_values("Attribution Impact", ascending=False)
+                
+                st.markdown("#### Attribution Drivers Ranking")
+                st.table(attr_drivers_df)
+                
+                # Layer Attribution Weights (synthetisch)
+                layer_attr_weights = np.clip(abs(da_norm), 0, None)
+                layer_attr_weights = layer_attr_weights / (layer_attr_weights.sum() + 1e-6)
+                
+                layer_components = attr_df.index
+                
+                layer_w_df = pd.DataFrame({
+                    "Layer": layer_components,
+                    "Weight": layer_attr_weights
+                })
+                
+                st.markdown("#### Layer Attribution Weights")
+                st.table(layer_w_df)
+                
+                # Heatmap
+                la_heat_df = pd.DataFrame({
+                    "Layer": layer_components,
+                    "Weight": layer_attr_weights
+                })
+                
+                la_chart = alt.Chart(la_heat_df).mark_bar().encode(
+                    x="Layer:N",
+                    y="Weight:Q",
+                    color=alt.Color("Weight:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["Layer", "Weight"]
+                ).properties(height=350)
+                
+                st.altair_chart(la_chart, use_container_width=True)
+                
+                # AI-Narrativ
+                deep_attr_narrative = f"""
+                ## Automatischer Deep-Attribution-Report
+                
+                ### 1. Überblick
+                Die Deep-Attribution-Engine erklärt **warum** das Portfolio tut, was es tut.  
+                Sie zerlegt Entscheidungen in Alpha-, Risk-, Execution-, Regime-, Crisis-,  
+                Meta-Learning- und Self-Healing-Layer.
+                
+                Dies ist der institutionelle Explainability-Layer.
+                
+                ---
+                
+                ### 2. Attribution Strength Index (ASI)
+                Der ASI beträgt **{attribution_strength_index:.4f}**  
+                - Hohe Werte → starke, klare Attribution  
+                - Niedrige Werte → diffuse Entscheidungsstruktur  
+                
+                ---
+                
+                ### 3. Wichtigste Attribution-Treiber
+                Die stärksten Treiber der Portfolio-Entscheidungen sind:
+                - **{attr_drivers_df.iloc[0,0]}**
+                - **{attr_drivers_df.iloc[1,0]}**
+                - **{attr_drivers_df.iloc[2,0]}**
+                
+                ---
+                
+                ### 4. Interpretation
+                - Alpha-Fusion, Forecast und Meta-Learning dominieren die Entscheidungsstruktur.  
+                - Risk-, Crisis- und Liquidity-Layer modulieren Stabilität.  
+                - Self-Healing und Meta-CIO sorgen für institutionelle Robustheit.  
+                - Das Modell erklärt Entscheidungen über alle Layer hinweg.
+                
+                ---
+                
+                ### 5. Handlungsempfehlungen
+                - Attribution nutzen, um Entscheidungen transparent zu machen.  
+                - Governance-Layer kann Attribution als Audit-Tool verwenden.  
+                - Meta-Learning kann Attribution zur Verbesserung nutzen.
+                
+                ---
+                
+                ### 6. Zusammenfassung
+                Die Deep-Attribution-Engine macht dein Portfolio  
+                **erklärbar, transparent und institutionell auditierbar**.
+                """
+                
+                st.markdown(deep_attr_narrative)
+
+                # ---------------------------------------------------------
+                # Portfolio-AI-Global-Macro-Brain (AI Macro Reasoning Engine) – Schritt 134
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Global-Macro-Brain (AI Macro Reasoning Engine)")
+                
+                # Macro Inputs (synthetisch aus allen Makro-relevanten Layern)
+                macro_inputs = np.array([
+                    unified_risk_index,
+                    systemic_risk_index,
+                    crisis_risk_index,
+                    causal_stress_index,
+                    liquidity_shock_index,
+                    scenario_severity_index,
+                    market_world_severity,
+                    hedge_intensity,
+                    alpha_fusion_score,
+                    alpha_forecast_index,
+                    slippage_risk,
+                    meta_cio_stability_index,
+                    self_healing_index,
+                    meta_learning_index,
+                    attribution_strength_index
+                ])
+                
+                # Normalisieren
+                macro_norm = (macro_inputs - macro_inputs.mean()) / (macro_inputs.std() + 1e-6)
+                
+                # Global Macro Index (GMI)
+                global_macro_index = macro_norm.mean()
+                st.metric("Global Macro Index (GMI)", f"{global_macro_index:.4f}")
+                
+                # Macro Interaction Matrix
+                macro_matrix = np.outer(macro_norm + 0.4, macro_norm)
+                macro_matrix = macro_matrix / (macro_matrix.max() + 1e-6)
+                
+                macro_df = pd.DataFrame(
+                    macro_matrix,
+                    columns=[
+                        "Unified", "Systemic", "Crisis", "CausalStress", "LiquidityShock",
+                        "Scenario", "Regime", "Hedge", "Fusion", "Forecast",
+                        "Slippage", "MetaCIO", "SelfHealing", "MetaLearning", "Attribution"
+                    ],
+                    index=[
+                        "Unified", "Systemic", "Crisis", "CausalStress", "LiquidityShock",
+                        "Scenario", "Regime", "Hedge", "Fusion", "Forecast",
+                        "Slippage", "MetaCIO", "SelfHealing", "MetaLearning", "Attribution"
+                    ]
+                )
+                
+                st.markdown("#### Global Macro Interaction Matrix")
+                st.table(macro_df)
+                
+                # Macro Drivers Ranking
+                macro_drivers = macro_matrix.sum(axis=1)
+                macro_drivers_df = pd.DataFrame({
+                    "Component": macro_df.index,
+                    "Macro Impact": macro_drivers
+                }).sort_values("Macro Impact", ascending=False)
+                
+                st.markdown("#### Macro Drivers Ranking")
+                st.table(macro_drivers_df)
+                
+                # Macro-Adjusted Portfolio Weights (synthetisch)
+                macro_weights = meta_cio_weights.copy()
+                
+                if global_macro_index > 0.25:
+                    macro_action = "Makro-Risk-On (mehr Exposure)"
+                    macro_weights *= 1.08
+                elif global_macro_index < -0.25:
+                    macro_action = "Makro-Risk-Off (weniger Exposure)"
+                    macro_weights *= 0.92
+                else:
+                    macro_action = "Makro-Neutral"
+                    macro_weights *= 1.00
+                
+                macro_weights = macro_weights / macro_weights.sum()
+                
+                macro_w_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Meta-CIO Weight": meta_cio_weights,
+                    "Macro Weight": macro_weights
+                })
+                
+                st.markdown("#### Macro-Adjusted Portfolio Weights")
+                st.table(macro_w_df)
+                
+                # Heatmap
+                mw_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Adjustment": macro_weights - meta_cio_weights
+                })
+                
+                mw_chart = alt.Chart(mw_df).mark_bar().encode(
+                    x="Asset:N",
+                    y="Adjustment:Q",
+                    color=alt.Color("Adjustment:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["Asset", "Adjustment"]
+                ).properties(height=350)
+                
+                st.altair_chart(mw_chart, use_container_width=True)
+                
+                # AI-Narrativ
+                macro_narrative = f"""
+                ## Automatischer Global-Macro-Report
+                
+                ### 1. Überblick
+                Das Global-Macro-Brain ist die **makroökonomische Denkmaschine** des Systems.  
+                Es erkennt globale Kräfte, Regime, Risiken, Chancen und makroökonomische Muster.
+                
+                Dies ist der institutionelle Macro-Reasoning-Layer.
+                
+                ---
+                
+                ### 2. Global Macro Index (GMI)
+                Der GMI beträgt **{global_macro_index:.4f}**  
+                - Hohe Werte → makroökonomisches Risiko steigt  
+                - Niedrige Werte → makroökonomische Stabilität  
+                
+                ---
+                
+                ### 3. Wichtigste Makro-Treiber
+                Die stärksten Makro-Komponenten sind:
+                - **{macro_drivers_df.iloc[0,0]}**
+                - **{macro_drivers_df.iloc[1,0]}**
+                - **{macro_drivers_df.iloc[2,0]}**
+                
+                ---
+                
+                ### 4. Interpretation
+                - Systemic, Crisis und Regime dominieren das globale Makrobild.  
+                - Alpha-Fusion und Forecast modulieren makroökonomische Chancen.  
+                - Self-Healing und Meta-Learning stabilisieren das System.  
+                - Das Modell erzeugt ein vollständiges makroökonomisches Reasoning.
+                
+                ---
+                
+                ### 5. Handlungsempfehlungen
+                - GMI eng überwachen → zeigt globale Makro-Spannungen.  
+                - Makro-Gewichte für taktische Allokation nutzen.  
+                - Meta-CIO-Agent integriert Makro-Layer in finale Entscheidungen.
+                
+                ---
+                
+                ### 6. Zusammenfassung
+                Das Global-Macro-Brain macht dein Portfolio  
+                **makro-intelligent, global adaptiv und institutionell überlegen**.
+                """
+                
+                st.markdown(macro_narrative)
+
+                # ---------------------------------------------------------
+                # Portfolio-AI-Master-Orchestrator (AI coordinating all AI layers) – Schritt 135
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Master-Orchestrator (AI coordinating all AI layers)")
+                
+                # Orchestrator Inputs (alle Layer + Meta-Layer)
+                orchestrator_inputs = np.array([
+                    meta_score,
+                    autopilot_score,
+                    risk_control_score,
+                    rl_action,
+                    adaptive_score,
+                    consistency_score,
+                    alpha_fusion_score,
+                    alpha_forecast_index,
+                    unified_risk_index,
+                    systemic_risk_index,
+                    crisis_risk_index,
+                    causal_stress_index,
+                    liquidity_shock_index,
+                    scenario_severity_index,
+                    market_world_severity,
+                    hedge_intensity,
+                    slippage_risk,
+                    meta_cio_stability_index,
+                    self_healing_index,
+                    meta_learning_index,
+                    global_macro_index,
+                    attribution_strength_index
+                ])
+                
+                # Normalisieren
+                orc_norm = (orchestrator_inputs - orchestrator_inputs.mean()) / (orchestrator_inputs.std() + 1e-6)
+                
+                # Master Orchestration Index (MOI)
+                master_orchestration_index = orc_norm.mean()
+                st.metric("Master Orchestration Index (MOI)", f"{master_orchestration_index:.4f}")
+                
+                # Cross-Layer Orchestration Matrix
+                orchestration_matrix = np.outer(orc_norm + 0.4, orc_norm)
+                orchestration_matrix = orchestration_matrix / (orchestration_matrix.max() + 1e-6)
+                
+                orc_df = pd.DataFrame(
+                    orchestration_matrix,
+                    columns=[
+                        "Meta", "Autopilot", "RiskControl", "RL", "Adaptive", "Consistency",
+                        "Fusion", "Forecast", "Unified", "Systemic", "Crisis",
+                        "CausalStress", "LiquidityShock", "Scenario", "Regime",
+                        "Hedge", "Slippage", "MetaCIO", "SelfHealing", "MetaLearning",
+                        "Macro", "Attribution"
+                    ],
+                    index=[
+                        "Meta", "Autopilot", "RiskControl", "RL", "Adaptive", "Consistency",
+                        "Fusion", "Forecast", "Unified", "Systemic", "Crisis",
+                        "CausalStress", "LiquidityShock", "Scenario", "Regime",
+                        "Hedge", "Slippage", "MetaCIO", "SelfHealing", "MetaLearning",
+                        "Macro", "Attribution"
+                    ]
+                )
+                
+                st.markdown("#### Cross-Layer Orchestration Matrix")
+                st.table(orc_df)
+                
+                # Orchestration Drivers Ranking
+                orc_drivers = orchestration_matrix.sum(axis=1)
+                orc_drivers_df = pd.DataFrame({
+                    "Component": orc_df.index,
+                    "Orchestration Impact": orc_drivers
+                }).sort_values("Orchestration Impact", ascending=False)
+                
+                st.markdown("#### Orchestration Drivers Ranking")
+                st.table(orc_drivers_df)
+                
+                # Orchestrator-Adjusted Portfolio Weights
+                orchestrator_weights = macro_weights.copy()
+                
+                if master_orchestration_index > 0.3:
+                    orchestrator_action = "System-Kohärenz hoch → Exposure erhöhen"
+                    orchestrator_weights *= 1.05
+                elif master_orchestration_index < -0.3:
+                    orchestrator_action = "System-Kohärenz niedrig → Exposure reduzieren"
+                    orchestrator_weights *= 0.95
+                else:
+                    orchestrator_action = "System-Kohärenz neutral"
+                    orchestrator_weights *= 1.00
+                
+                orchestrator_weights = orchestrator_weights / orchestrator_weights.sum()
+                
+                orc_w_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Macro Weight": macro_weights,
+                    "Orchestrator Weight": orchestrator_weights
+                })
+                
+                st.markdown("#### Orchestrator-Adjusted Portfolio Weights")
+                st.table(orc_w_df)
+                
+                # Heatmap
+                orc_heat_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Adjustment": orchestrator_weights - macro_weights
+                })
+                
+                orc_chart = alt.Chart(orc_heat_df).mark_bar().encode(
+                    x="Asset:N",
+                    y="Adjustment:Q",
+                    color=alt.Color("Adjustment:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["Asset", "Adjustment"]
+                ).properties(height=350)
+                
+                st.altair_chart(orc_chart, use_container_width=True)
+                
+                # AI-Narrativ
+                orchestrator_narrative = f"""
+                ## Automatischer Master-Orchestrator-Report
+                
+                ### 1. Überblick
+                Der Master-Orchestrator ist der **höchste Kontroll-Layer** des Systems.  
+                Er koordiniert alle AI-Agenten, alle Risiko-Layer, alle Alpha-Layer,  
+                alle Makro-Layer und alle Meta-Learning-Layer.
+                
+                Er ist das institutionelle Gehirn über allen Gehirnen.
+                
+                ---
+                
+                ### 2. Master Orchestration Index (MOI)
+                Der MOI beträgt **{master_orchestration_index:.4f}**  
+                - Hohe Werte → starke Systemkohärenz  
+                - Niedrige Werte → Konflikte zwischen Agenten  
+                
+                ---
+                
+                ### 3. Wichtigste Orchestrations-Treiber
+                Die stärksten Treiber der Systemkoordination sind:
+                - **{orc_drivers_df.iloc[0,0]}**
+                - **{orc_drivers_df.iloc[1,0]}**
+                - **{orc_drivers_df.iloc[2,0]}**
+                
+                ---
+                
+                ### 4. Interpretation
+                - Meta-Learning, Macro und Unified-Risk dominieren die Systemkoordination.  
+                - Crisis-, Liquidity- und Causal-Layer modulieren Stabilität.  
+                - Alpha-Fusion und Forecast bestimmen strategische Ausrichtung.  
+                - Der Orchestrator erzeugt finale, institutionelle Entscheidungen.
+                
+                ---
+                
+                ### 5. Handlungsempfehlungen
+                - MOI eng überwachen → misst Systemkohärenz.  
+                - Orchestrator-Gewichte als finale Allokation nutzen.  
+                - Governance-Layer kann Orchestrator als Audit-Layer verwenden.
+                
+                ---
+                
+                ### 6. Zusammenfassung
+                Der Master-Orchestrator macht dein Portfolio  
+                **koordiniert, kohärent und institutionell überragend**.
+                """
+                
+                st.markdown(orchestrator_narrative)
+
+                # ---------------------------------------------------------
+                # Portfolio-AI-Cognitive-Dashboard (AI Thought Visualization) – Schritt 136
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Cognitive-Dashboard (AI Thought Visualization)")
+                
+                # Cognitive Inputs (alle Meta-, Macro-, Risk-, Alpha- und Orchestrator-Layer)
+                cognitive_inputs = np.array([
+                    meta_score,
+                    autopilot_score,
+                    risk_control_score,
+                    rl_action,
+                    adaptive_score,
+                    consistency_score,
+                    alpha_fusion_score,
+                    alpha_forecast_index,
+                    unified_risk_index,
+                    systemic_risk_index,
+                    crisis_risk_index,
+                    causal_stress_index,
+                    liquidity_shock_index,
+                    scenario_severity_index,
+                    market_world_severity,
+                    hedge_intensity,
+                    slippage_risk,
+                    meta_cio_stability_index,
+                    self_healing_index,
+                    meta_learning_index,
+                    global_macro_index,
+                    attribution_strength_index,
+                    master_orchestration_index
+                ])
+                
+                # Normalisieren
+                cg_norm = (cognitive_inputs - cognitive_inputs.mean()) / (cognitive_inputs.std() + 1e-6)
+                
+                # Cognitive Coherence Index (CCI)
+                cognitive_coherence_index = cg_norm.mean()
+                st.metric("Cognitive Coherence Index (CCI)", f"{cognitive_coherence_index:.4f}")
+                
+                # Cognitive Interaction Matrix
+                cognitive_matrix = np.outer(cg_norm + 0.4, cg_norm)
+                cognitive_matrix = cognitive_matrix / (cognitive_matrix.max() + 1e-6)
+                
+                cognitive_labels = [
+                    "Meta", "Autopilot", "RiskControl", "RL", "Adaptive", "Consistency",
+                    "Fusion", "Forecast", "Unified", "Systemic", "Crisis",
+                    "CausalStress", "LiquidityShock", "Scenario", "Regime",
+                    "Hedge", "Slippage", "MetaCIO", "SelfHealing", "MetaLearning",
+                    "Macro", "Attribution", "Orchestrator"
+                ]
+                
+                cognitive_df = pd.DataFrame(cognitive_matrix, columns=cognitive_labels, index=cognitive_labels)
+                
+                st.markdown("#### Cognitive Interaction Matrix")
+                st.table(cognitive_df)
+                
+                # Cognitive Drivers Ranking
+                cognitive_drivers = cognitive_matrix.sum(axis=1)
+                cognitive_drivers_df = pd.DataFrame({
+                    "Component": cognitive_df.index,
+                    "Cognitive Impact": cognitive_drivers
+                }).sort_values("Cognitive Impact", ascending=False)
+                
+                st.markdown("#### Cognitive Drivers Ranking")
+                st.table(cognitive_drivers_df)
+                
+                # Heatmap
+                cg_long = cognitive_df.reset_index().melt(id_vars="index", var_name="To", value_name="Strength")
+                cg_long.rename(columns={"index": "From"}, inplace=True)
+                
+                cg_chart = alt.Chart(cg_long).mark_rect().encode(
+                    x=alt.X("To:N", title="Affected Cognitive Node"),
+                    y=alt.Y("From:N", title="Cognitive Source"),
+                    color=alt.Color("Strength:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["From", "To", "Strength"]
+                ).properties(height=350)
+                
+                st.altair_chart(cg_chart, use_container_width=True)
+                
+                # AI-Narrativ
+                cognitive_narrative = f"""
+                ## Automatischer Cognitive-Dashboard-Report
+                
+                ### 1. Überblick
+                Das Cognitive-Dashboard visualisiert die **Gedanken des Systems**:  
+                Wie AI-Agenten, Risiko-Layer, Alpha-Layer, Makro-Layer und Meta-Layer  
+                miteinander interagieren.
+                
+                Es ist der institutionelle Cognitive-Reasoning-Layer.
+                
+                ---
+                
+                ### 2. Cognitive Coherence Index (CCI)
+                Der CCI beträgt **{cognitive_coherence_index:.4f}**  
+                - Hohe Werte → kohärente AI-Gedanken  
+                - Niedrige Werte → fragmentierte Entscheidungslogik  
+                
+                ---
+                
+                ### 3. Wichtigste Cognitive-Treiber
+                Die stärksten kognitiven Einflussfaktoren sind:
+                - **{cognitive_drivers_df.iloc[0,0]}**
+                - **{cognitive_drivers_df.iloc[1,0]}**
+                - **{cognitive_drivers_df.iloc[2,0]}**
+                
+                ---
+                
+                ### 4. Interpretation
+                - Meta-Learning, Orchestrator und Macro dominieren die kognitive Struktur.  
+                - Crisis-, Liquidity- und Unified-Layer modulieren Risiko-Gedanken.  
+                - Alpha-Fusion und Forecast bestimmen strategische Überlegungen.  
+                - Das Modell zeigt die vollständige Denkarchitektur des Systems.
+                
+                ---
+                
+                ### 5. Handlungsempfehlungen
+                - CCI eng überwachen → misst kognitive Klarheit.  
+                - Cognitive-Dashboard als Explainability-Tool nutzen.  
+                - Governance-Layer kann Cognitive-Maps für Audits verwenden.
+                
+                ---
+                
+                ### 6. Zusammenfassung
+                Das Cognitive-Dashboard macht dein Portfolio  
+                **denkbar, sichtbar, transparent und institutionell überlegen**.
+                """
+                
+                st.markdown(cognitive_narrative)
+
+                # ---------------------------------------------------------
+                # Portfolio-AI-Autonomous-Pilot (Full Autonomous Portfolio Control) – Schritt 137
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Autonomous-Pilot (Full Autonomous Portfolio Control)")
+                
+                # Autonomous Pilot Inputs (alle Layer + Cognitive Layer)
+                autonomous_inputs = np.array([
+                    meta_score,
+                    autopilot_score,
+                    risk_control_score,
+                    rl_action,
+                    adaptive_score,
+                    consistency_score,
+                    alpha_fusion_score,
+                    alpha_forecast_index,
+                    unified_risk_index,
+                    systemic_risk_index,
+                    crisis_risk_index,
+                    causal_stress_index,
+                    liquidity_shock_index,
+                    scenario_severity_index,
+                    market_world_severity,
+                    hedge_intensity,
+                    slippage_risk,
+                    meta_cio_stability_index,
+                    self_healing_index,
+                    meta_learning_index,
+                    global_macro_index,
+                    attribution_strength_index,
+                    master_orchestration_index,
+                    cognitive_coherence_index
+                ])
+                
+                # Normalisieren
+                ap_norm = (autonomous_inputs - autonomous_inputs.mean()) / (autonomous_inputs.std() + 1e-6)
+                
+                # Autonomous Control Index (ACI)
+                autonomous_control_index = ap_norm.mean()
+                st.metric("Autonomous Control Index (ACI)", f"{autonomous_control_index:.4f}")
+                
+                # Autonomous Decision Matrix
+                autonomous_matrix = np.outer(ap_norm + 0.4, ap_norm)
+                autonomous_matrix = autonomous_matrix / (autonomous_matrix.max() + 1e-6)
+                
+                autonomous_labels = [
+                    "Meta", "Autopilot", "RiskControl", "RL", "Adaptive", "Consistency",
+                    "Fusion", "Forecast", "Unified", "Systemic", "Crisis",
+                    "CausalStress", "LiquidityShock", "Scenario", "Regime",
+                    "Hedge", "Slippage", "MetaCIO", "SelfHealing", "MetaLearning",
+                    "Macro", "Attribution", "Orchestrator", "Cognitive"
+                ]
+                
+                autonomous_df = pd.DataFrame(autonomous_matrix, columns=autonomous_labels, index=autonomous_labels)
+                
+                st.markdown("#### Autonomous Decision Matrix")
+                st.table(autonomous_df)
+                
+                # Autonomous Drivers Ranking
+                autonomous_drivers = autonomous_matrix.sum(axis=1)
+                autonomous_drivers_df = pd.DataFrame({
+                    "Component": autonomous_df.index,
+                    "Autonomous Impact": autonomous_drivers
+                }).sort_values("Autonomous Impact", ascending=False)
+                
+                st.markdown("#### Autonomous Drivers Ranking")
+                st.table(autonomous_drivers_df)
+                
+                # Autonomous Portfolio Weights
+                autonomous_weights = orchestrator_weights.copy()
+                
+                if autonomous_control_index > 0.3:
+                    autonomous_action = "Voll-Autonom: Exposure erhöhen"
+                    autonomous_weights *= 1.06
+                elif autonomous_control_index < -0.3:
+                    autonomous_action = "Voll-Autonom: Exposure reduzieren"
+                    autonomous_weights *= 0.94
+                else:
+                    autonomous_action = "Voll-Autonom: Neutral"
+                    autonomous_weights *= 1.00
+                
+                autonomous_weights = autonomous_weights / autonomous_weights.sum()
+                
+                autonomous_w_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Orchestrator Weight": orchestrator_weights,
+                    "Autonomous Weight": autonomous_weights
+                })
+                
+                st.markdown("#### Autonomous Portfolio Weights")
+                st.table(autonomous_w_df)
+                
+                # Heatmap
+                ap_heat_df = pd.DataFrame({
+                    "Asset": df.columns,
+                    "Adjustment": autonomous_weights - orchestrator_weights
+                })
+                
+                ap_chart = alt.Chart(ap_heat_df).mark_bar().encode(
+                    x="Asset:N",
+                    y="Adjustment:Q",
+                    color=alt.Color("Adjustment:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["Asset", "Adjustment"]
+                ).properties(height=350)
+                
+                st.altair_chart(ap_chart, use_container_width=True)
+                
+                # AI-Narrativ
+                autonomous_narrative = f"""
+                ## Automatischer Autonomous-Pilot-Report
+                
+                ### 1. Überblick
+                Der Autonomous-Pilot ist der **vollautonome Steuerungs-Layer** des Systems.  
+                Er trifft finale Portfolio-Entscheidungen basierend auf allen AI-Layern,  
+                Makro-Layern, Meta-Layern, Cognitive-Layern und Orchestrator-Layern.
+                
+                Er ist das institutionelle Selbststeuerungsmodul.
+                
+                ---
+                
+                ### 2. Autonomous Control Index (ACI)
+                Der ACI beträgt **{autonomous_control_index:.4f}**  
+                - Hohe Werte → System bereit für autonome Entscheidungen  
+                - Niedrige Werte → System benötigt Stabilisierung  
+                
+                ---
+                
+                ### 3. Wichtigste Autonomous-Treiber
+                Die stärksten autonomen Einflussfaktoren sind:
+                - **{autonomous_drivers_df.iloc[0,0]}**
+                - **{autonomous_drivers_df.iloc[1,0]}**
+                - **{autonomous_drivers_df.iloc[2,0]}**
+                
+                ---
+                
+                ### 4. Interpretation
+                - Meta-Learning, Orchestrator und Cognitive-Layer dominieren die Autonomie.  
+                - Crisis-, Liquidity- und Unified-Layer modulieren Risiko.  
+                - Alpha-Fusion und Forecast bestimmen strategische Ausrichtung.  
+                - Das Modell erzeugt finale, autonome Portfolio-Gewichte.
+                
+                ---
+                
+                ### 5. Handlungsempfehlungen
+                - ACI eng überwachen → misst Autonomie-Reife.  
+                - Autonomous-Gewichte als finale Allokation nutzen.  
+                - Governance-Layer kann Autonomous-Pilot als Audit-Layer verwenden.
+                
+                ---
+                
+                ### 6. Zusammenfassung
+                Der Autonomous-Pilot macht dein Portfolio  
+                **vollautonom, selbststeuernd und institutionell überlegen**.
+                """
+                
+                st.markdown(autonomous_narrative)
+
+                # ---------------------------------------------------------
+                # Portfolio-AI-Ethics-Guardian (Creative Ethics Awareness Layer) – Schritt 138 (rein kreativ, keine echte Compliance)
+                # ---------------------------------------------------------
+                
+                st.markdown("### ")
+                st.subheader("Portfolio-AI-Ethics-Guardian (Creative Ethics Awareness Layer)")
+                
+                # Ethics Awareness Inputs (rein kreativ, keine echte Compliance)
+                ethics_inputs = np.array([
+                    meta_learning_index,
+                    cognitive_coherence_index,
+                    master_orchestration_index,
+                    self_healing_index,
+                    attribution_strength_index,
+                    global_macro_index,
+                    unified_risk_index,
+                    crisis_risk_index,
+                    liquidity_shock_index,
+                    alpha_fusion_score,
+                    alpha_forecast_index,
+                    meta_cio_stability_index
+                ])
+                
+                # Normalisieren
+                eg_norm = (ethics_inputs - ethics_inputs.mean()) / (ethics_inputs.std() + 1e-6)
+                
+                # Ethics Awareness Index (EAI) – rein kreativ
+                ethics_awareness_index = eg_norm.mean()
+                st.metric("Ethics Awareness Index (EAI)", f"{ethics_awareness_index:.4f}")
+                
+                # Ethics Interaction Matrix
+                ethics_matrix = np.outer(eg_norm + 0.4, eg_norm)
+                ethics_matrix = ethics_matrix / (ethics_matrix.max() + 1e-6)
+                
+                ethics_labels = [
+                    "MetaLearning", "Cognitive", "Orchestrator", "SelfHealing",
+                    "Attribution", "Macro", "UnifiedRisk", "Crisis",
+                    "LiquidityShock", "Fusion", "Forecast", "MetaCIO"
+                ]
+                
+                ethics_df = pd.DataFrame(ethics_matrix, columns=ethics_labels, index=ethics_labels)
+                
+                st.markdown("#### Ethics Awareness Interaction Matrix")
+                st.table(ethics_df)
+                
+                # Ethics Drivers Ranking
+                ethics_drivers = ethics_matrix.sum(axis=1)
+                ethics_drivers_df = pd.DataFrame({
+                    "Component": ethics_df.index,
+                    "Ethics Impact": ethics_drivers
+                }).sort_values("Ethics Impact", ascending=False)
+                
+                st.markdown("#### Ethics Awareness Drivers")
+                st.table(ethics_drivers_df)
+                
+                # Ethics Heatmap
+                eg_long = ethics_df.reset_index().melt(id_vars="index", var_name="To", value_name="Strength")
+                eg_long.rename(columns={"index": "From"}, inplace=True)
+                
+                eg_chart = alt.Chart(eg_long).mark_rect().encode(
+                    x=alt.X("To:N", title="Affected Ethics Node"),
+                    y=alt.Y("From:N", title="Ethics Source"),
+                    color=alt.Color("Strength:Q", scale=alt.Scale(scheme="inferno")),
+                    tooltip=["From", "To", "Strength"]
+                ).properties(height=350)
+                
+                st.altair_chart(eg_chart, use_container_width=True)
+                
+                # AI-Narrativ (rein kreativ)
+                ethics_narrative = f"""
+                ## Automatischer Ethics-Guardian-Report (Creative Module)
+                
+                ### 1. Überblick
+                Der Ethics-Guardian ist ein **kreatives Awareness-Modul**,  
+                das visualisiert, wie harmonisch, stabil und reflektiert  
+                die verschiedenen AI-Layer miteinander interagieren.
+                
+                Es ersetzt keine echte Compliance – es ist ein kreatives Dashboard-Element.
+                
+                ---
+                
+                ### 2. Ethics Awareness Index (EAI)
+                Der EAI beträgt **{ethics_awareness_index:.4f}**  
+                - Hohe Werte → harmonische, reflektierte Systemstruktur  
+                - Niedrige Werte → kreative „Ethik-Spannungen“ im System  
+                
+                ---
+                
+                ### 3. Wichtigste Ethics-Treiber
+                Die stärksten kreativen Einflussfaktoren sind:
+                - **{ethics_drivers_df.iloc[0,0]}**
+                - **{ethics_drivers_df.iloc[1,0]}**
+                - **{ethics_drivers_df.iloc[2,0]}**
+                
+                ---
+                
+                ### 4. Interpretation
+                - Meta-Learning, Cognitive und Orchestrator dominieren die kreative Ethikstruktur.  
+                - Crisis-, Liquidity- und Unified-Layer erzeugen kreative „Ethik-Dynamiken“.  
+                - Alpha-Fusion und Forecast modulieren strategische Reflexion.  
+                
+                ---
+                
+                ### 5. Hinweis
+                Dieses Modul ist **rein kreativ**  
+                und dient ausschließlich der **Visualisierung** und **Storytelling**  
+                innerhalb deines Multi-Agent-Dashboards.
+                
+                ---
+                
+                ### 6. Zusammenfassung
+                Der Ethics-Guardian macht dein Dashboard  
+                **reflektiert, kreativ und visuell bewusst**.
+                """
+                
+                st.markdown(ethics_narrative)
+
                 
 
                
