@@ -149,7 +149,7 @@ with tab1:
         
             st.success("Datei erfolgreich eingelesen!")
             st.write(df.head())
-            st.dataframe(df_preview.head())
+            st.dataframe(df.head(20))
 
     # -----------------------------------------------------
     # PARAMETER BEREICH
