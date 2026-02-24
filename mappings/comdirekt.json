@@ -1,0 +1,16 @@
+{
+  "comdirect": {
+    "date": ["date", "buchungsdatum", "datum"],
+    "time": ["time"],
+    "type": ["type", "aktion", "side"],
+    "status": ["status"],
+    "isin": ["isin"],
+    "description": ["bezeichnung", "description", "name"],
+    "shares": ["stueck", "quantity", "shares"],
+    "price": ["kurs", "price"],
+    "amount": ["betrag", "amount", "total"],
+    "fee": ["gebuehr", "fee", "commission"],
+    "tax": ["steuer", "tax"],
+    "currency": ["waehrung", "currency"]
+  }
+}
